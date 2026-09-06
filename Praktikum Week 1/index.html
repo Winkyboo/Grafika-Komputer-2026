@@ -3,20 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Praktikum 1</title>
+    <meta name="description" content="Laporan dan interactive playground Praktikum Grafika Komputer 1 Kelompok 4.">
+    <title>Praktikum 1 | Interactive Graphics Playground</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="main-container">
-        
-        <div id="controls">
-            <button id="btnTrail">Aktifkan Trail Mode (Jejak)</button>
+    <main class="page-shell">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 01</p>
+                <h1>Output Praktikum 1 <span>— Interactive Graphics Playground</span></h1>
+                <p class="subtitle">Eksperimen bentuk, gerak, input, dan rendering 2D dalam satu ruang bermain.</p>
+            </div>
+            <div class="header-meta">
+                <span class="group-badge">Kelompok 4</span>
+                <span class="status"><i></i> Semua syarat selesai</span>
+                <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+            </div>
+        </header>
+
+        <div class="content-grid">
+            <section class="playground-panel panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">MAIN QUEST</p>
+                        <h2>Canvas Playground</h2>
+                    </div>
+                    <span class="canvas-size">800 × 500 PX</span>
+                </div>
+
+                <div class="canvas-wrap">
+                    <canvas id="graphicsCanvas" width="800" height="500">
+                        Browser Anda belum mendukung HTML Canvas.
+                    </canvas>
+                    <span class="canvas-label">LIVE RENDER</span>
+                </div>
+
+                <div id="controls" class="control-bar">
+                    <div class="control-actions">
+                        <button id="btnTrail" class="button button-primary" type="button">Aktifkan Trail Mode</button>
+                        <button id="btnPause" class="button button-secondary" type="button">Pause <kbd>Space</kbd></button>
+                        <button id="btnReset" class="button button-secondary" type="button">Reset <kbd>R</kbd></button>
+                    </div>
+                    <label class="speed-control" for="speedRange">
+                        <span>Kecepatan <strong id="speedValue">5</strong></span>
+                        <input id="speedRange" type="range" min="1" max="12" value="5">
+                    </label>
+                </div>
+
+                <div class="hint-row">
+                    <span><b>WASD / Arrow</b> gerakkan Frieren</span>
+                    <span><b>Klik kiri</b> buat circle</span>
+                    <span><b>Klik kanan</b> hapus terakhir</span>
+                    <span><b>Mouse move</b> follower circle</span>
+                </div>
+
+                <div class="scene-deck">
+                    <div class="deck-heading">
+                        <div>
+                            <p class="section-kicker">SCENE TELEMETRY</p>
+                            <h3>World Status</h3>
+                        </div>
+                        <span class="deck-live"><i></i> RUNNING</span>
+                    </div>
+                    <div class="scene-stats">
+                        <div><strong>07</strong><span>object families</span></div>
+                        <div><strong>05</strong><span>active colors</span></div>
+                        <div><strong>02</strong><span>moving sprites</span></div>
+                        <div><strong>60</strong><span>target FPS</span></div>
+                    </div>
+                    <div class="scene-legend">
+                        <span><i class="legend-dot blue"></i>Primitives</span>
+                        <span><i class="legend-dot pink"></i>Dynamic objects</span>
+                        <span><i class="legend-dot yellow"></i>Player input</span>
+                        <span><i class="legend-dot green"></i>Mouse tracking</span>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="report-column">
+                <section class="panel report-panel">
+                    <div class="panel-heading compact">
+                        <div>
+                            <p class="section-kicker">README / TECHNICAL NOTES</p>
+                            <h2>Laporan Praktikum</h2>
+                        </div>
+                        <span class="chapter-mark">01</span>
+                    </div>
+
+                    <div class="report-intro">
+                        <p class="intro-label">HASIL PRAKTIKUM</p>
+                        <p>Interactive Graphics Playground ini menggabungkan primitive 2D, objek bergerak, input keyboard, input mouse, dan kontrol animasi dalam satu canvas responsif. Demo dapat langsung dicoba di panel sebelah kiri.</p>
+                    </div>
+
+                    <div class="report-block demo-block">
+                        <div class="block-heading">
+                            <h3>Demo &amp; Parameter</h3>
+                            <span class="live-tag">LIVE 800 × 500</span>
+                        </div>
+                        <div class="parameter-grid">
+                            <div><strong>Rendering</strong><span>Canvas 2D API</span></div>
+                            <div><strong>Loop</strong><span>requestAnimationFrame()</span></div>
+                            <div><strong>Input</strong><span>State-based keyboard</span></div>
+                            <div><strong>Player speed</strong><span>1–12 px / frame</span></div>
+                        </div>
+                    </div>
+
+                    <div class="report-block">
+                        <h3>Ringkasan Kontrol</h3>
+                        <table class="control-table">
+                            <thead><tr><th>Input</th><th>Aksi</th><th>Implementasi</th></tr></thead>
+                            <tbody>
+                                <tr><td><kbd>W A S D</kbd> / Arrow</td><td>Gerakkan player</td><td>State-based</td></tr>
+                                <tr><td><kbd>R</kbd></td><td>Reset posisi player</td><td>Event-based</td></tr>
+                                <tr><td><kbd>Space</kbd></td><td>Pause / resume animasi</td><td>Loop control</td></tr>
+                                <tr><td>Klik kiri</td><td>Buat circle &amp; ganti warna bola</td><td>Mouse event</td></tr>
+                                <tr><td>Klik kanan</td><td>Hapus circle terakhir</td><td>Context event</td></tr>
+                                <tr><td>Mouse move</td><td>Follower &amp; koordinat</td><td>Pointer state</td></tr>
+                                <tr><td>Trail Mode</td><td>Pertahankan jejak frame</td><td>Clear toggle</td></tr>
+                                <tr><td>Speed slider</td><td>Ubah laju player</td><td>Parameter state</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="report-block">
+                        <h3>Objek Grafis</h3>
+                        <table class="object-table">
+                            <thead><tr><th>Objek</th><th>Visual / Perilaku</th></tr></thead>
+                            <tbody>
+                                <tr><td>Rectangle, Line, Circle</td><td>Primitive dasar dengan warna berbeda</td></tr>
+                                <tr><td>Triangle</td><td>Polygon dari tiga vertex</td></tr>
+                                <tr><td>Bouncing Ball</td><td>Bola ungu dengan velocity &amp; boundary check</td></tr>
+                                <tr><td>Player Frieren</td><td>Sprite yang ditranslasi oleh keyboard</td></tr>
+                                <tr><td>2 Moving Frieren</td><td>Multiple moving objects dengan pantulan batas</td></tr>
+                                <tr><td>Follower Circle</td><td>Circle yang mengikuti posisi mouse</td></tr>
+                                <tr><td>Clicked Circles</td><td>Circle tambahan yang dibuat di posisi klik</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </aside>
         </div>
 
-    <canvas id="graphicsCanvas"
-            width="800"
-            height="500">
-    </canvas>
+        <section class="technical-report panel">
+            <div class="technical-heading">
+                <div>
+                    <p class="section-kicker">ENGINEERING README</p>
+                    <h2>How This Playground Works</h2>
+                </div>
+                <span class="chapter-mark">02</span>
+            </div>
+            <div class="technical-layout">
+                <div>
+                    <div class="report-block explanation">
+                        <h3>Perbedaan Teknis</h3>
+                        <div class="tech-columns">
+                            <div><strong>Event-based</strong><p><code>keydown</code> dan klik menangkap aksi sesaat seperti reset, pause, perubahan warna, serta pembuatan circle. Translasi langsung dari <code>keydown</code> dapat bergantung pada keyboard repeat browser.</p></div>
+                            <div><strong>State-based</strong><p><code>keydown</code>/<code>keyup</code> hanya mengubah state tombol. <code>updatePlayer()</code> membaca state setiap frame sehingga gerak lebih stabil, mendukung diagonal, dan tidak bergantung pada delay repeat.</p></div>
+                        </div>
+                    </div>
+                    <div class="flow-line" aria-label="Alur rendering">
+                        <span>DATA / STATE</span><b>→</b><span>UPDATE LOOP</span><b>→</b><span>CANVAS API DRAW</span>
+                    </div>
+                    <div class="flow-caption">Posisi, ukuran, warna, velocity, state keyboard, dan koordinat mouse diubah sebagai data. Fungsi draw meneruskan data tersebut ke Canvas 2D API pada setiap frame.</div>
+                </div>
+                <div class="report-block checklist-block">
+                    <div class="block-heading"><h3>Checklist Hasil</h3><span class="completion">8 / 8 CORE</span></div>
+                    <ul class="checklist">
+                        <li><span>✓</span> Canvas 800 × 500 dan responsive container</li>
+                        <li><span>✓</span> Primitive: rectangle, line, circle, triangle, dan minimal empat warna</li>
+                        <li><span>✓</span> Bouncing ball dengan velocity dan boundary check</li>
+                        <li><span>✓</span> Translasi player via WASD / Arrow dan koordinat mouse</li>
+                        <li><span>✓</span> Pause / resume, reset player, dan parameter speed</li>
+                        <li><span>✓</span> Challenge: click to create circle dan trail mode</li>
+                        <li><span>✓</span> Challenge: multiple moving objects</li>
+                        <li><span>✓</span> Alur state → update loop → Canvas API draw</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <footer class="page-footer"><span>BUILD 01.04</span><span>INTERACTIVE 2D GRAPHICS</span><span>GROUP 04</span></footer>
+    </main>
 
     <script src="app.js"></script>
 </body>

@@ -106,9 +106,15 @@ movingFrieren2.image.src = "frieren_movingobject (2).png";
 
 const keys = {};
 
+const btnReset = document.getElementById("btnReset");
+const btnPause = document.getElementById("btnPause");
+const speedRange = document.getElementById("speedRange");
+const speedValue = document.getElementById("speedValue");
+
 let colorIndex = 0;
 
 let isTrailMode = false;
+let isPaused = false;
 const btnTrail = document.getElementById("btnTrail");
 
 btnTrail.addEventListener("click", function() {
@@ -122,6 +128,32 @@ btnTrail.addEventListener("click", function() {
         btnTrail.style.backgroundColor = ""; 
         btnTrail.style.color = "";
     }
+});
+
+function resetPlayer() {
+    player.x = 600;
+    player.y = 350;
+}
+
+btnReset.addEventListener("click", resetPlayer);
+
+function togglePause() {
+    isPaused = !isPaused;
+    btnPause.textContent = isPaused ? "Resume " : "Pause ";
+    btnPause.appendChild(document.createElement("kbd"));
+    btnPause.lastElementChild.textContent = "Space";
+    btnPause.classList.toggle("button-paused", isPaused);
+
+    if (!isPaused) {
+        requestAnimationFrame(animate);
+    }
+}
+
+btnPause.addEventListener("click", togglePause);
+
+speedRange.addEventListener("input", function() {
+    player.speed = Number(speedRange.value);
+    speedValue.textContent = speedRange.value;
 });
 
 const followerCircle = {
@@ -166,30 +198,39 @@ canvas.addEventListener("contextmenu", function(event) {
 });
 
 window.addEventListener("keydown", function(event) {
+    if (event.code === "Space" && !event.repeat) {
+        event.preventDefault();
+        togglePause();
+        return;
+    }
+
     const controlledKeys = [
-        "ArrowLeft",
-        "ArrowRight",
-        "ArrowUp",
-        "ArrowDown"
+        "arrowleft",
+        "arrowright",
+        "arrowup",
+        "arrowdown",
+        "a",
+        "d",
+        "w",
+        "s"
     ];
 
-    if (controlledKeys.includes(event.key)) {
+    if (controlledKeys.includes(event.key.toLowerCase())) {
         event.preventDefault();
     }
 
-    keys[event.key] = true;
+    keys[event.key.toLowerCase()] = true;
 
     if (
         event.key.toLowerCase() === "r" &&
         !event.repeat
     ) {
-        player.x = 600;
-        player.y = 350;
+        resetPlayer();
     }
 });
 
 window.addEventListener("keyup", function(event) {
-    keys[event.key] = false;
+    keys[event.key.toLowerCase()] = false;
 });
 
 
@@ -382,19 +423,19 @@ function drawPlayer() {
 }
 
 function updatePlayer() {
-    if (keys["ArrowLeft"]) {
+    if (keys["arrowleft"] || keys["a"]) {
         player.x -= player.speed;
     }
 
-    if (keys["ArrowRight"]) {
+    if (keys["arrowright"] || keys["d"]) {
         player.x += player.speed;
     }
 
-    if (keys["ArrowUp"]) {
+    if (keys["arrowup"] || keys["w"]) {
         player.y -= player.speed;
     }
 
-    if (keys["ArrowDown"]) {
+    if (keys["arrowdown"] || keys["s"]) {
         player.y += player.speed;
     }
 
@@ -416,6 +457,10 @@ function updatePlayer() {
 }
 
 function animate() {
+    if (isPaused) {
+        return;
+    }
+
     if (!isTrailMode) {
         clearCanvas();
         drawStaticScene(); 
