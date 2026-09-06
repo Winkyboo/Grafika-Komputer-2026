@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelompok 4 - Grafika Komputer B</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font bergaya playful/game yang mudah dibaca -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Canvas untuk Background Animasi (Partikel Mana/Sihir) -->
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="layout">
+        <!-- Sidebar Menu -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Buku Panduan</h2>
+                <p>Grafika Komputer B</p>
+            </div>
+            
+            <nav class="nav-links">
+                <!-- Tombol Beranda -->
+                <button class="nav-btn active" onclick="showHome(this)">
+                    <span class="icon">🏠</span> Beranda Profil
+                </button>
+                
+                <!-- Tombol Praktikum (Ganti src dengan path file Anda) -->
+                <button class="nav-btn" onclick="loadPraktikum(this, './praktikum1/index.html')">
+                    <span class="icon">⚔️</span> Praktikum 1
+                </button>
+                
+                <!-- Tombol Praktikum Terkunci (Untuk minggu-minggu berikutnya) -->
+                <button class="nav-btn locked">
+                    <span class="icon">🔒</span> Praktikum 2
+                </button>
+                <button class="nav-btn locked">
+                    <span class="icon">🔒</span> Praktikum 3
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Area Konten Utama (Berubah-ubah sesuai klik) -->
+        <main class="main-content">
+            
+            <!-- SECTION 1: Halaman Beranda (Profil Kelompok) -->
+            <section id="home-section" class="active-section">
+                <div class="title-container">
+                    <div class="badge">Kelompok 4</div>
+                    <h1>Party Members</h1>
+                </div>
+
+                <div class="cards-container">
+                    <!-- Kartu Profil Willy -->
+                    <div class="profile-card">
+                        <div class="avatar-ring">
+                            <div class="avatar willy">WM</div>
+                        </div>
+                        <div class="info">
+                            <h3>Willy Marcelius</h3>
+                            <p class="nrp">NRP. 5025241096</p>
+                            <span class="role-badge">Mage</span>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Profil Rennard -->
+                    <div class="profile-card">
+                        <div class="avatar-ring">
+                            <div class="avatar rennard">RF</div>
+                        </div>
+                        <div class="info">
+                            <h3>Rennard Filbert Tanjaya</h3>
+                            <p class="nrp">NRP. 5025241122</p>
+                            <span class="role-badge">Barbarian</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: Iframe (Tempat memuat file Canvas Game Praktikum) -->
+            <iframe id="game-frame" src="" class="hidden" title="Game Area"></iframe>
+            
+        </main>
+    </div>
+
+    <!-- Script Animasi Background & Logika Navigasi -->
+    <script src="app.js"></script>
+</body>
+</html>
