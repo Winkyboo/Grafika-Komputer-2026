@@ -8,10 +8,10 @@ Demo berjalan pada canvas berukuran **800 x 500 piksel** dan dapat langsung digu
 
 ## Identitas Praktikum
 
-| Nama           | NRP        | Mata Kuliah     | Kelas |
-| ---            | ---        | ----------| --- |
-| Willy Marcelius | 5025241096 | Grafika Komputer       | B |
-| Rennard Filbert Tanjaya  | 5025241122           | Grafika Komputer | B |
+| Nama           | NRP        | Mata Kuliah     | Kelas | Kelompok |
+| ---            | ---        | ----------| --- | --- |
+| Willy Marcelius | 5025241096 | Grafika Komputer       | B | 4 |
+| Rennard Filbert Tanjaya  | 5025241122           | Grafika Komputer | B | 4 |
   
 ## Tujuan
 
