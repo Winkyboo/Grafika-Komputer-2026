@@ -1,3 +1,25 @@
+/*
+Praktikum Grafika Komputer - Pertemuan 1
+Graphics Playground
+
+Nama : Rennard Filbert Tanjaya
+NRP  : 5025241122
+Kelas: B
+
+Nama : Willy Marcelius
+NRP  : 5025241096
+Kelas: B
+
+Challenge:
+- Keyboard Movement
+- Mouse Coordinate
+- Bouncing Object
+- Follow Mouse
+- Click to Create Circle
+- Trail Mode
+- Multiple Moving Objects
+*/
+
 const canvas = document.getElementById("graphicsCanvas");
 const ctx = canvas.getContext("2d");
 
