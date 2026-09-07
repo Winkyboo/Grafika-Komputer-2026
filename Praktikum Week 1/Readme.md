@@ -49,7 +49,9 @@ Praktikum Week 1/
 ├── frieren_player.png
 ├── frieren_movingobject.png
 ├── frieren_movingobject (2).png
+├── screenshot.jpeg
 └── Readme.md
+
 ```
 
 ### Penjelasan File
@@ -323,26 +325,26 @@ Muat ulang halaman browser. Jika menggunakan Live Server, pastikan file yang die
 
 ## Checklist Pengujian
 
-- [ ] `index.html` dapat dibuka tanpa error.
-- [ ] Canvas terlihat dengan ukuran dan layout yang sesuai.
-- [ ] Rectangle, line, circle, dan triangle terlihat.
-- [ ] Moving ball bergerak dan memantul.
-- [ ] Dua sprite moving Frieren bergerak dan memantul.
-- [ ] Player dapat digerakkan dengan WASD.
-- [ ] Player dapat digerakkan dengan tombol panah.
-- [ ] Player tidak keluar dari batas canvas.
-- [ ] Tombol `R` dan Reset mengembalikan posisi player.
-- [ ] Tombol `Space` dan Pause dapat menghentikan animasi.
-- [ ] Speed slider mengubah kecepatan player.
-- [ ] Koordinat mouse tampil dan berubah secara real-time.
-- [ ] Follower circle mengikuti mouse.
-- [ ] Klik kiri membuat circle baru.
-- [ ] Klik kiri mengubah warna moving ball.
-- [ ] Klik kanan menghapus circle terakhir.
-- [ ] Clear Circles menghapus semua circle hasil klik.
-- [ ] Trail Mode menghasilkan jejak gerakan.
-- [ ] Console browser tidak menampilkan error merah.
-- [ ] Semua aset PNG dapat dimuat.
+- [x] `index.html` dapat dibuka tanpa error.
+- [x] Canvas terlihat dengan ukuran dan layout yang sesuai.
+- [x] Rectangle, line, circle, dan triangle terlihat.
+- [x] Moving ball bergerak dan memantul.
+- [x] Dua sprite moving Frieren bergerak dan memantul.
+- [x] Player dapat digerakkan dengan WASD.
+- [x] Player dapat digerakkan dengan tombol panah.
+- [x] Player tidak keluar dari batas canvas.
+- [x] Tombol `R` dan Reset mengembalikan posisi player.
+- [x] Tombol `Space` dan Pause dapat menghentikan animasi.
+- [x] Speed slider mengubah kecepatan player.
+- [x] Koordinat mouse tampil dan berubah secara real-time.
+- [x] Follower circle mengikuti mouse.
+- [x] Klik kiri membuat circle baru.
+- [x] Klik kiri mengubah warna moving ball.
+- [x] Klik kanan menghapus circle terakhir.
+- [x] Clear Circles menghapus semua circle hasil klik.
+- [x] Trail Mode menghasilkan jejak gerakan.
+- [x] Console browser tidak menampilkan error merah.
+- [x] Semua aset PNG dapat dimuat.
 
 ## Kesimpulan
 
