@@ -1,261 +1,364 @@
 :root {
-    --bg-dark: #12182b;      /* Biru malam gelap */
-    --panel-bg: rgba(30, 39, 73, 0.7); /* Panel transparan */
-    --accent: #facc15;       /* Emas/Kuning cerah */
-    --accent-hover: #eab308;
-    --text-main: #e2e8f0;
-    --border-color: #3b82f6; /* Biru terang untuk border */
-    --border-thick: 4px solid var(--border-color);
+  --bg-dark: #12182b;
+  --panel-bg: rgba(30, 39, 73, 0.7);
+  --accent: #facc15;
+  --accent-hover: #eab308;
+  --text-main: #e2e8f0;
+  --border-color: #3b82f6;
+  --border-thick: 4px solid var(--border-color);
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Nunito', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Nunito', sans-serif;
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-    overflow: hidden; /* Mencegah scroll bar ganda */
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  overflow: hidden;
 }
 
-/* Background Canvas agar berada di belakang segalanya */
 #bgCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0; /* Ubah dari -1 menjadi 0 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
 }
 
+/* ==============================
+   Layout & Sidebar
+   ============================== */
 .layout {
-    display: flex;
-    height: 100vh;
-    padding: 20px;
-    gap: 20px;
-    position: relative; 
-    z-index: 1;        
+  display: flex;
+  height: 100vh;
+  padding: 20px;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
-/* --- SIDEBAR (Aesthetic Buku Menu RPG) --- */
 .sidebar {
-    width: 280px;
-    background: var(--panel-bg);
-    border: var(--border-thick);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    padding: 25px;
-    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
+  width: 280px;
+  background: var(--panel-bg);
+  border: var(--border-thick);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-header {
-    text-align: center;
-    border-bottom: 2px dashed var(--border-color);
-    padding-bottom: 20px;
-    margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px dashed var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .sidebar-header h2 {
-    color: var(--accent);
-    font-weight: 900;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .sidebar-header p {
-    font-size: 14px;
-    color: #93c5fd;
-    font-weight: 700;
+  font-size: 14px;
+  color: #93c5fd;
+  font-weight: 700;
 }
 
-/* Navigasi Tombol */
 .nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .nav-btn {
-    background: rgba(15, 23, 42, 0.6);
-    color: var(--text-main);
-    border: 2px solid #1e3a8a;
-    padding: 12px 15px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-main);
+  border: 2px solid #1e3a8a;
+  padding: 12px 15px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .nav-btn:hover:not(.locked) {
-    background: var(--border-color);
-    transform: translateX(5px);
+  background: var(--border-color);
+  transform: translateX(5px);
 }
 
 .nav-btn.active {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
-    box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
-    transform: scale(1.02);
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
 }
 
 .nav-btn.locked {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: transparent;
-    border-color: #334155;
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent;
+  border-color: #334155;
 }
 
-/* --- AREA KONTEN UTAMA --- */
+/* ==============================
+   Main Content Area
+   ============================== */
 .main-content {
-    flex: 1;
-    position: relative;
-    background: var(--panel-bg);
-    border: var(--border-thick);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
+  flex: 1;
+  position: relative;
+  background: var(--panel-bg);
+  border: var(--border-thick);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
-/* Transisi Halaman */
-#home-section, #game-frame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transition: opacity 0.4s ease;
+#home-section,
+#profile-section,
+#game-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.4s ease;
 }
 
 .hidden {
-    opacity: 0;
-    pointer-events: none;
-    z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .active-section {
-    opacity: 1;
-    pointer-events: auto;
-    z-index: 10;
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 10;
 }
 
-/* iframe untuk Canvas Game */
 #game-frame {
-    border: none;
-    border-radius: 15px;
+  border: none;
+  border-radius: 15px;
 }
 
-/* --- HALAMAN BERANDA (PROFIL KARTU) --- */
-#home-section {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.content-section {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
 }
 
 .title-container {
-    text-align: center;
-    margin-bottom: 50px;
+  text-align: center;
+  margin-bottom: 50px;
 }
 
 .badge {
-    background: var(--accent);
-    color: #000;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-weight: 900;
-    font-size: 14px;
-    display: inline-block;
-    margin-bottom: 10px;
-    box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+  background: var(--accent);
+  color: #000;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: 900;
+  font-size: 14px;
+  display: inline-block;
+  margin-bottom: 10px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
 .title-container h1 {
-    font-size: 3rem;
-    color: #fff;
-    text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+  font-size: 3rem;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
 }
 
-/* Grid Kartu Profil */
+/* ==============================
+   Profile Cards
+   ============================== */
 .cards-container {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-    justify-content: center;
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .profile-card {
-    background: linear-gradient(145deg, #1e293b, #0f172a);
-    border: 3px solid #475569;
-    border-radius: 20px;
-    padding: 30px;
-    width: 280px;
-    text-align: center;
-    position: relative;
-    transition: transform 0.3s, border-color 0.3s;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 3px solid #475569;
+  border-radius: 20px;
+  padding: 30px;
+  width: 280px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s, border-color 0.3s;
 }
 
 .profile-card:hover {
-    transform: translateY(-10px);
-    border-color: var(--accent);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  transform: translateY(-10px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* Avatar Style */
 .avatar-ring {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid var(--accent);
-    padding: 4px;
-    margin: 0 auto 20px;
-    background: #000;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid var(--accent);
+  padding: 4px;
+  margin: 0 auto 20px;
+  background: #000;
 }
 
 .avatar {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: 900;
-    color: #fff;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: #fff;
 }
 
-.avatar.willy { background: linear-gradient(45deg, #ef4444, #f59e0b); }
-.avatar.rennard { background: linear-gradient(45deg, #3b82f6, #8b5cf6); }
+.avatar.willy {
+  background: linear-gradient(45deg, #ef4444, #f59e0b);
+}
+
+.avatar.rennard {
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+}
 
 .info h3 {
-    font-size: 20px;
-    margin-bottom: 5px;
-    color: #fff;
+  font-size: 20px;
+  margin-bottom: 5px;
+  color: #fff;
 }
 
 .info .nrp {
-    color: #94a3b8;
-    font-size: 14px;
-    margin-bottom: 15px;
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 15px;
 }
 
 .role-badge {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* ==============================
+   Home / Practicum Section
+   ============================== */
+.home-title {
+  max-width: 760px;
+  margin-bottom: 28px;
+}
+
+.home-description {
+  margin: 16px 0 0;
+  color: #bfdbfe;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.home-practicum-list {
+  width: min(100%, 900px);
+}
+
+.home-practicum-list h2 {
+  margin: 0 0 18px;
+  color: var(--accent);
+  font-size: 23px;
+  text-align: center;
+}
+
+.practicum-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.practicum-card {
+  display: flex;
+  width: min(100%, 255px);
+  min-height: 220px;
+  flex-direction: column;
+  padding: 20px;
+  border: 2px solid #475569;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+}
+
+.practicum-card h3 {
+  margin: 14px 0 9px;
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.practicum-card p {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.practicum-number {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border: 1px solid #38bdf8;
+  border-radius: 99px;
+  color: #7dd3fc;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+}
+
+.practicum-link {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 13px 0 0;
+  border: 0;
+  color: var(--accent);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.practicum-link:hover {
+  color: #fff;
+}
+
+.coming-card {
+  opacity: 0.6;
+}
+
+.coming-card > span:last-child {
+  margin-top: auto;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
 }

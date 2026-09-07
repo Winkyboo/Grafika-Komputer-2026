@@ -3,72 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelompok 4 - Grafika Komputer B</title>
+    <title>Beranda - Grafika Komputer B</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Font bergaya playful/game yang mudah dibaca -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Canvas untuk Background Animasi (Partikel Mana/Sihir) -->
     <canvas id="bgCanvas"></canvas>
-
     <div class="layout">
-        <!-- Sidebar Menu -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Buku Panduan</h2>
+                <h2>Praktikum Kelompok 4</h2>
                 <p>Grafika Komputer B</p>
             </div>
-            
             <nav class="nav-links">
-                <!-- Tombol Beranda -->
-                <button class="nav-btn active" onclick="showHome(this)">
-                    <span class="icon">🏠</span> Beranda Profil
+                <button class="nav-btn active" type="button" onclick="showSection('home', this)">
+                    <span class="icon">⌂</span> Beranda
                 </button>
-                
-                <!-- Tombol Praktikum (Ganti src dengan path file Anda) -->
-                <button class="nav-btn" onclick="loadPraktikum(this, './Praktikum Week 1/index.html')">
-                    <span class="icon">⚔️</span> Praktikum 1
+                <button class="nav-btn" type="button" onclick="showSection('profile', this)">
+                    <span class="icon">◉</span> Profil Kelompok
                 </button>
-                
-                <!-- Tombol Praktikum Terkunci (Untuk minggu-minggu berikutnya) -->
-                <button class="nav-btn locked">
+                <button class="nav-btn" type="button" onclick="loadPraktikum(this, './Praktikum Week 1/index.html', 'Praktikum 1')">
+                    <span class="icon">⚔</span> Praktikum 1
+                </button>
+                <button class="nav-btn locked" disabled>
                     <span class="icon">🔒</span> Praktikum 2
                 </button>
-                <button class="nav-btn locked">
+                <button class="nav-btn locked" disabled>
                     <span class="icon">🔒</span> Praktikum 3
                 </button>
             </nav>
         </aside>
 
-        <!-- Area Konten Utama (Berubah-ubah sesuai klik) -->
         <main class="main-content">
-            
-            <!-- SECTION 1: Halaman Beranda (Profil Kelompok) -->
-            <section id="home-section" class="active-section">
+            <section id="home-section" class="content-section active-section">
+                <div class="title-container home-title">
+                    <div class="badge">Grafika Komputer B</div>
+                    <h1>Graphics Playground</h1>
+                    <p class="home-description">Pusat dokumentasi praktikum Kelompok 4. Jelajahi setiap pertemuan untuk melihat konsep grafika, eksperimen interaktif, dan hasil implementasi kami.</p>
+                </div>
+
+                <div class="home-practicum-list">
+                    <h2>Daftar Praktikum</h2>
+                    <div class="practicum-cards">
+                        <article class="practicum-card">
+                            <span class="practicum-number">PERTEMUAN 1</span>
+                            <h3>Canvas 2D - Graphics Playground</h3>
+                            <p>Primitive 2D, animasi, dan interaksi mouse serta keyboard.</p>
+                            <button type="button" class="practicum-link" onclick="openPraktikumOne()">Buka Praktikum 1 →</button>
+                        </article>
+                        <article class="practicum-card coming-card">
+                            <span class="practicum-number">PERTEMUAN 2</span>
+                            <h3>Praktikum Berikutnya</h3>
+                            <p>...</p>
+                            <span>Coming soon</span>
+                        </article>
+                        <article class="practicum-card coming-card">
+                            <span class="practicum-number">PERTEMUAN 3</span>
+                            <h3>Praktikum Berikutnya</h3>
+                            <p>...</p>
+                            <span>Coming soon</span>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile-section" class="content-section hidden">
                 <div class="title-container">
                     <div class="badge">Kelompok 4</div>
                     <h1>Party Members</h1>
                 </div>
-
                 <div class="cards-container">
-                    <!-- Kartu Profil Willy -->
                     <div class="profile-card">
-                        <div class="avatar-ring">
-                            <div class="avatar willy">WM</div>
-                        </div>
+                        <div class="avatar-ring"><div class="avatar willy">WM</div></div>
                         <div class="info">
                             <h3>Willy Marcelius</h3>
                             <p class="nrp">NRP. 5025241096</p>
                             <span class="role-badge">Mage</span>
                         </div>
                     </div>
-
-                    <!-- Kartu Profil Rennard -->
                     <div class="profile-card">
-                        <div class="avatar-ring">
-                            <div class="avatar rennard">RF</div>
-                        </div>
+                        <div class="avatar-ring"><div class="avatar rennard">RF</div></div>
                         <div class="info">
                             <h3>Rennard Filbert Tanjaya</h3>
                             <p class="nrp">NRP. 5025241122</p>
@@ -77,14 +91,9 @@
                     </div>
                 </div>
             </section>
-
-            <!-- SECTION 2: Iframe (Tempat memuat file Canvas Game Praktikum) -->
             <iframe id="game-frame" src="" class="hidden" title="Game Area"></iframe>
-            
         </main>
     </div>
-
-    <!-- Script Animasi Background & Logika Navigasi -->
     <script src="app.js"></script>
 </body>
 </html>

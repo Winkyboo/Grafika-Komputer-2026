@@ -47,6 +47,7 @@
                         <button id="btnTrail" class="button button-primary" type="button">Aktifkan Trail Mode</button>
                         <button id="btnPause" class="button button-secondary" type="button">Pause <kbd>Space</kbd></button>
                         <button id="btnReset" class="button button-secondary" type="button">Reset <kbd>R</kbd></button>
+                        <button id="btnClearCircles" class="button button-secondary" type="button">Clear Circles</button>
                     </div>
                     <label class="speed-control" for="speedRange">
                         <span>Kecepatan <strong id="speedValue">5</strong></span>
@@ -58,28 +59,27 @@
                     <span><b>WASD / Arrow</b> gerakkan Frieren</span>
                     <span><b>Klik kiri</b> buat circle</span>
                     <span><b>Klik kanan</b> hapus terakhir</span>
+                    <span><b>Clear Circles</b> hapus semua circle</span>
                     <span><b>Mouse move</b> follower circle</span>
                 </div>
 
-                <div class="scene-deck">
-                    <div class="deck-heading">
+                <div class="challenge-status">
+                    <div class="status-heading">
                         <div>
-                            <p class="section-kicker">SCENE TELEMETRY</p>
-                            <h3>World Status</h3>
+                            <p class="section-kicker">CHALLENGE STATUS</p>
+                            <h3>Fitur Interaktif</h3>
                         </div>
-                        <span class="deck-live"><i></i> RUNNING</span>
+                        <span class="status-live"><i></i> ACTIVE</span>
                     </div>
-                    <div class="scene-stats">
-                        <div><strong>07</strong><span>object families</span></div>
-                        <div><strong>05</strong><span>active colors</span></div>
-                        <div><strong>02</strong><span>moving sprites</span></div>
-                        <div><strong>60</strong><span>target FPS</span></div>
-                    </div>
-                    <div class="scene-legend">
-                        <span><i class="legend-dot blue"></i>Primitives</span>
-                        <span><i class="legend-dot pink"></i>Dynamic objects</span>
-                        <span><i class="legend-dot yellow"></i>Player input</span>
-                        <span><i class="legend-dot green"></i>Mouse tracking</span>
+                    <div class="feature-status-grid">
+                        <span><i>✓</i> Keyboard movement</span>
+                        <span><i>✓</i> Mouse coordinate</span>
+                        <span><i>✓</i> Click to create</span>
+                        <span><i>✓</i> Right-click undo</span>
+                        <span><i>✓</i> Clear all circles</span>
+                        <span><i>✓</i> Trail mode</span>
+                        <span><i>✓</i> Bouncing objects</span>
+                        <span><i>✓</i> Multiple objects</span>
                     </div>
                 </div>
             </section>
@@ -122,6 +122,7 @@
                                 <tr><td><kbd>Space</kbd></td><td>Pause / resume animasi</td><td>Loop control</td></tr>
                                 <tr><td>Klik kiri</td><td>Buat circle &amp; ganti warna bola</td><td>Mouse event</td></tr>
                                 <tr><td>Klik kanan</td><td>Hapus circle terakhir</td><td>Context event</td></tr>
+                                <tr><td>Clear Circles</td><td>Hapus semua circle klik</td><td>Button event</td></tr>
                                 <tr><td>Mouse move</td><td>Follower &amp; koordinat</td><td>Pointer state</td></tr>
                                 <tr><td>Trail Mode</td><td>Pertahankan jejak frame</td><td>Clear toggle</td></tr>
                                 <tr><td>Speed slider</td><td>Ubah laju player</td><td>Parameter state</td></tr>
@@ -171,18 +172,84 @@
                     <div class="flow-caption">Posisi, ukuran, warna, velocity, state keyboard, dan koordinat mouse diubah sebagai data. Fungsi draw meneruskan data tersebut ke Canvas 2D API pada setiap frame.</div>
                 </div>
                 <div class="report-block checklist-block">
-                    <div class="block-heading"><h3>Checklist Hasil</h3><span class="completion">8 / 8 CORE</span></div>
+                    <div class="block-heading"><h3>Checklist Sebelum Dikumpulkan</h3><span class="completion">12 / 12 CHECK</span></div>
                     <ul class="checklist">
-                        <li><span>✓</span> Canvas 800 × 500 dan responsive container</li>
-                        <li><span>✓</span> Primitive: rectangle, line, circle, triangle, dan minimal empat warna</li>
-                        <li><span>✓</span> Bouncing ball dengan velocity dan boundary check</li>
-                        <li><span>✓</span> Translasi player via WASD / Arrow dan koordinat mouse</li>
-                        <li><span>✓</span> Pause / resume, reset player, dan parameter speed</li>
-                        <li><span>✓</span> Challenge: click to create circle dan trail mode</li>
-                        <li><span>✓</span> Challenge: multiple moving objects</li>
-                        <li><span>✓</span> Alur state → update loop → Canvas API draw</li>
+                        <li><span>✓</span> Halaman dapat dibuka tanpa error</li>
+                        <li><span>✓</span> Canvas terlihat</li>
+                        <li><span>✓</span> Minimal tiga jenis primitive terlihat</li>
+                        <li><span>✓</span> Triangle terlihat dengan benar</li>
+                        <li><span>✓</span> Warna berbeda terlihat</li>
+                        <li><span>✓</span> Objek bergerak</li>
+                        <li><span>✓</span> Interaksi bekerja</li>
+                        <li><span>✓</span> Koordinat mouse tampil</li>
+                        <li><span>✓</span> Challenge yang dipilih bekerja</li>
+                        <li><span>✓</span> Tidak ada error merah pada Console</li>
+                        <li><span>✓</span> Objek utama tidak hilang permanen dari canvas</li>
+                        <li><span>✓</span> Kode mudah dibaca dan memiliki komentar seperlunya</li>
                     </ul>
                 </div>
+            </div>
+        </section>
+
+        <section class="challenge-report panel" aria-labelledby="challenge-title">
+            <div class="technical-heading">
+                <div>
+                    <p class="section-kicker">CHALLENGE REPORT</p>
+                    <h2 id="challenge-title">Challenge yang Diselesaikan</h2>
+                </div>
+                <span class="chapter-mark">03</span>
+            </div>
+            <p class="challenge-intro">Setiap challenge mengubah data aplikasi, kemudian animation loop menggambar state terbaru ke canvas. Bagian ini menjelaskan perilaku dan konsep grafika yang diterapkan pada setiap challenge.</p>
+
+            <div class="challenge-grid">
+                <article class="challenge-card keyboard">
+                    <span class="challenge-number">01</span>
+                    <h3>Keyboard Movement</h3>
+                    <p>Player Frieren bergerak dengan tombol WASD atau Arrow. Event <code>keydown</code> dan <code>keyup</code> menyimpan status tombol, lalu <code>updatePlayer()</code> menerapkan translasi secara kontinu pada setiap frame.</p>
+                    <footer><b>Konsep:</b> state-based input, translasi, multi-key movement</footer>
+                </article>
+
+                <article class="challenge-card coordinate">
+                    <span class="challenge-number">02</span>
+                    <h3>Mouse Coordinate</h3>
+                    <p>Posisi mouse ditampilkan secara real-time sebagai pasangan koordinat <code>(x, y)</code>. Nilainya dihitung relatif terhadap canvas sehingga pengguna dapat melihat hubungan pointer dengan sistem koordinat 2D.</p>
+                    <footer><b>Konsep:</b> canvas coordinate, scaling, real-time feedback</footer>
+                </article>
+
+                <article class="challenge-card bounce">
+                    <span class="challenge-number">03</span>
+                    <h3>Bouncing Object</h3>
+                    <p>Bola ungu bergerak menggunakan <code>speedX</code> dan <code>speedY</code>. Ketika tepi bola menyentuh batas canvas, nilai velocity dikalikan <code>-1</code> sehingga arah geraknya berbalik.</p>
+                    <footer><b>Konsep:</b> position, velocity, boundary check</footer>
+                </article>
+
+                <article class="challenge-card follow">
+                    <span class="challenge-number">04</span>
+                    <h3>Follow Mouse</h3>
+                    <p>Follower circle mengambil nilai <code>mouse.x</code> dan <code>mouse.y</code> dari event <code>mousemove</code>. Posisi pointer dikonversi ke koordinat canvas agar tetap tepat saat ukuran tampilan berubah.</p>
+                    <footer><b>Konsep:</b> mouse coordinate, pointer state</footer>
+                </article>
+
+                <article class="challenge-card click">
+                    <span class="challenge-number">05</span>
+                    <h3>Click to Create Circle</h3>
+                    <p>Setiap klik kiri membuat object circle baru dan menyimpannya ke array <code>clickedCircles</code>. Klik kanan menghapus circle terakhir sebagai undo, sedangkan tombol Clear Circles menghapus seluruh isi array.</p>
+                    <footer><b>Konsep:</b> array of objects, mouse event, redraw</footer>
+                </article>
+
+                <article class="challenge-card trail">
+                    <span class="challenge-number">06</span>
+                    <h3>Trail Mode</h3>
+                    <p>Mode ini menghentikan pemanggilan <code>clearCanvas()</code> pada setiap frame. Pixel dari frame sebelumnya tetap terlihat sehingga objek bergerak meninggalkan jejak visual.</p>
+                    <footer><b>Konsep:</b> frame buffer, clear vs. persistent frame</footer>
+                </article>
+
+                <article class="challenge-card multiple">
+                    <span class="challenge-number">07</span>
+                    <h3>Multiple Moving Objects</h3>
+                    <p>Dua sprite Frieren memiliki data posisi, ukuran, dan kecepatan masing-masing. Keduanya diperbarui serta memantul secara independen pada setiap frame.</p>
+                    <footer><b>Konsep:</b> object data, independent update loop</footer>
+                </article>
             </div>
         </section>
         <footer class="page-footer"><span>BUILD 01.04</span><span>INTERACTIVE 2D GRAPHICS</span><span>GROUP 04</span></footer>

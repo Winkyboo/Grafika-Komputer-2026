@@ -108,6 +108,7 @@ const keys = {};
 
 const btnReset = document.getElementById("btnReset");
 const btnPause = document.getElementById("btnPause");
+const btnClearCircles = document.getElementById("btnClearCircles");
 const speedRange = document.getElementById("speedRange");
 const speedValue = document.getElementById("speedValue");
 
@@ -162,6 +163,12 @@ const followerCircle = {
 };
 
 const clickedCircles = [];
+
+function clearClickedCircles() {
+    clickedCircles.length = 0;
+}
+
+btnClearCircles.addEventListener("click", clearClickedCircles);
 
 canvas.addEventListener("mousemove", function(event) {
     const rect = canvas.getBoundingClientRect();
@@ -236,6 +243,30 @@ window.addEventListener("keyup", function(event) {
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawCoordinateGrid() {
+    const gridSize = 50;
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(45, 65, 110, 0.15)";
+    ctx.lineWidth = 1;
+
+    for (let x = gridSize; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+
+    for (let y = gridSize; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    ctx.restore();
 }
 
 function drawRectangle() {
@@ -379,10 +410,10 @@ function drawMovingFrieren2() {
 function updateMovingFrieren() {
     movingFrieren.x += movingFrieren.speedX;
     movingFrieren.y += movingFrieren.speedY;
-    if (movingFrieren.x + movingFrieren.width >= canvas.width || movingFrieren.x - movingFrieren.width <= 0) {
+    if (movingFrieren.x + movingFrieren.width >= canvas.width || movingFrieren.x <= 0) {
         movingFrieren.speedX *= -1;  
     }
-    if (movingFrieren.y + movingFrieren.height >= canvas.height || movingFrieren.y - movingFrieren.height <= 0) {
+    if (movingFrieren.y + movingFrieren.height >= canvas.height || movingFrieren.y <= 0) {
         movingFrieren.speedY *= -1;  
     }
 }
@@ -390,10 +421,10 @@ function updateMovingFrieren() {
 function updateMovingFrieren2() {
     movingFrieren2.x += movingFrieren2.speedX;
     movingFrieren2.y += movingFrieren2.speedY;
-    if (movingFrieren2.x + movingFrieren2.width >= canvas.width || movingFrieren2.x - movingFrieren2.width <= 0) {
+    if (movingFrieren2.x + movingFrieren2.width >= canvas.width || movingFrieren2.x <= 0) {
         movingFrieren2.speedX *= -1;
     }
-    if (movingFrieren2.y + movingFrieren2.height >= canvas.height || movingFrieren2.y - movingFrieren2.height <= 0) {
+    if (movingFrieren2.y + movingFrieren2.height >= canvas.height || movingFrieren2.y <= 0) {
         movingFrieren2.speedY *= -1;
     }
 }
@@ -463,21 +494,21 @@ function animate() {
 
     if (!isTrailMode) {
         clearCanvas();
-        drawStaticScene(); 
+        drawCoordinateGrid();
     }
 
     updateMovingBall();
     updatePlayer();
     updateMovingFrieren();
     updateMovingFrieren2();
+    drawStaticScene();
     drawClickedCircles();
     drawPlayer();
-    drawMouseCoordinate();
-    drawStaticScene();
     drawMovingBall();
     drawMovingFrieren();
     drawMovingFrieren2();
     drawFollowerCircle();
+    drawMouseCoordinate();
 
     requestAnimationFrame(animate);
 }
