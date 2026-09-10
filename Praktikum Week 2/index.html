@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebGL Primitive Playground</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 02</p>
+        <h1>Output Praktikum 2 <span>— WebGL Primitive Playground</span></h1>
+        <p class="subtitle">Eksperimen shader, vertex color, draw mode, dan interaksi WebGL dalam satu ruang bermain.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 4</span>
+        <span class="status"><i></i> WebGL aktif</span>
+        <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+      </div>
+    </header>
+
+    <div class="content-grid">
+    <section class="stage panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">MAIN QUEST</p><h2>WebGL Canvas Playground</h2></div>
+        <span class="canvas-size">800 × 600 PX</span>
+      </div>
+      <div class="canvas-wrap">
+      <canvas id="glCanvas" width="800" height="600"></canvas>
+      <span class="canvas-label">LIVE RENDER</span>
+      </div>
+      <div class="hud">
+        <p>FPS <strong id="fpsValue">0</strong></p>
+        <p>Primitive <strong id="countValue">4</strong></p>
+        <p>Draw mode <strong id="modeValue">TRIANGLES</strong></p>
+        <p>Mouse NDC <strong id="mouseValue">(0.00, 0.00)</strong></p>
+      </div>
+    </section>
+
+    <aside class="controls panel">
+      <div class="panel-heading compact"><div><p class="section-kicker">PARAMETER CONTROL</p><h2>WebGL Controls</h2></div><span class="chapter-mark">02</span></div>
+      <label>Primitive selector
+        <select id="primitiveType">
+          <option value="triangle">Triangle</option>
+          <option value="rectangle" selected>Rectangle</option>
+          <option value="line">Line shape</option>
+          <option value="points">Procedural points</option>
+        </select>
+      </label>
+      <label>Draw mode
+        <select id="drawMode">
+          <option value="TRIANGLES" selected>TRIANGLES</option>
+          <option value="LINE_STRIP">LINE STRIP</option>
+          <option value="POINTS">POINTS</option>
+        </select>
+      </label>
+      <label>Movement speed <output id="speedValue">1.00</output>
+        <input id="speed" type="range" min="0.25" max="2" value="1" step="0.05">
+      </label>
+      <p class="label">Color control</p>
+      <div class="color-buttons">
+        <button data-color="red">Red</button><button data-color="green">Green</button>
+        <button data-color="blue">Blue</button><button data-color="cyan">Cyan</button>
+        <button data-color="random">Random</button>
+      </div>
+      <label class="check"><input id="gridToggle" type="checkbox" checked> Procedural grid pattern</label>
+      <div class="actions"><button id="pauseButton" class="primary">Pause (P)</button><button id="resetButton">Reset (R)</button></div>
+      <button id="clearButton" class="wide">Clear spawned primitives</button>
+      <div class="help"><strong>Keyboard & mouse</strong><br>Arrow / WASD: move selected primitive<br>Left click: spawn primitive<br>Right click: undo last spawn</div>
+    </aside>
+    </div>
+    <footer class="page-footer"><span>BUILD 02.01</span><span>WEBGL 2.0 GRAPHICS</span><span>GROUP 04</span></footer>
+  </main>
+  <script src="main.js"></script>
+</body>
+</html>
