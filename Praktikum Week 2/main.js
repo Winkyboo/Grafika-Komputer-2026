@@ -280,7 +280,8 @@ function update() {
     if (item.y + bounds.maxY >= 1 || item.y + bounds.minY <= -1) item.vy *= -1;
     clampInsideCanvas(item);
   }
-  const move = .016;
+  // Slider juga mengatur kecepatan primitive yang dikendalikan keyboard.
+  const move = .016 * scale;
   if (keys.ArrowLeft || keys.a) controlled.x -= move;
   if (keys.ArrowRight || keys.d) controlled.x += move;
   if (keys.ArrowUp || keys.w) controlled.y += move;
