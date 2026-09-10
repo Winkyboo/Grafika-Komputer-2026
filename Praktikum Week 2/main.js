@@ -1,41 +1,86 @@
-// WebGL Primitive Playground. Semua interaksi dan rendering tetap memakai JS + WebGL.
+/*
+Praktikum Grafika Komputer - Pertemuan 2
+WebGL Fundamental
+
+Nama : Rennard Filbert Tanjaya
+NRP  : 5025241122
+Kelas: B
+
+Nama : Willy Marcelius
+NRP  : 5025241096
+Kelas: B
+
+Challenge:
+- Primitive Selector
+- Color Control
+- Spawn Primitive
+- Multiple Moving Objects
+- Procedural Grid Pattern
+- Simple HUD
+*/
+
 const canvas = document.getElementById("glCanvas");
 const gl = canvas.getContext("webgl2");
 if (!gl) throw new Error("WebGL2 tidak tersedia.");
 
 const ui = {
-  type: document.getElementById("primitiveType"), mode: document.getElementById("drawMode"),
-  speed: document.getElementById("speed"), speedValue: document.getElementById("speedValue"),
-  pause: document.getElementById("pauseButton"), reset: document.getElementById("resetButton"),
-  clear: document.getElementById("clearButton"), grid: document.getElementById("gridToggle"),
-  fps: document.getElementById("fpsValue"), count: document.getElementById("countValue"),
-  modeHud: document.getElementById("modeValue"), mouse: document.getElementById("mouseValue"),
+  type: document.getElementById("primitiveType"),
+  mode: document.getElementById("drawMode"),
+  speed: document.getElementById("speed"),
+  speedValue: document.getElementById("speedValue"),
+  pause: document.getElementById("pauseButton"),
+  reset: document.getElementById("resetButton"),
+  clear: document.getElementById("clearButton"),
+  grid: document.getElementById("gridToggle"),
+  fps: document.getElementById("fpsValue"),
+  count: document.getElementById("countValue"),
+  modeHud: document.getElementById("modeValue"),
+  mouse: document.getElementById("mouseValue"),
 };
 
 gl.viewport(0, 0, canvas.width, canvas.height);
 gl.clearColor(0.02, 0.04, 0.09, 1);
 
 const vertexSource = `#version 300 es
-in vec2 a_position; in vec3 a_color;
-out vec3 v_color;
-void main() { gl_Position = vec4(a_position, 0.0, 1.0); gl_PointSize = 10.0; v_color = a_color; }`;
+  in vec2 a_position;
+  in vec3 a_color;
+  out vec3 v_color;
+  void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+    gl_PointSize = 10.0;
+    v_color = a_color;
+  }`;
+
 const fragmentSource = `#version 300 es
-precision highp float;
-in vec3 v_color; out vec4 outColor;
-void main() { outColor = vec4(v_color, 1.0); }`;
+  precision highp float;
+  in vec3 v_color;
+  out vec4 outColor;
+  void main() {
+    outColor = vec4(v_color, 1.0);
+  }`;
 
 function makeShader(type, source) {
   const shader = gl.createShader(type);
-  gl.shaderSource(shader, source); gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(shader));
+  }
+
   return shader;
 }
+
 function makeProgram() {
   const program = gl.createProgram();
   gl.attachShader(program, makeShader(gl.VERTEX_SHADER, vertexSource));
   gl.attachShader(program, makeShader(gl.FRAGMENT_SHADER, fragmentSource));
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error(gl.getProgramInfoLog(program));
+  }
+
   return program;
 }
 
@@ -48,19 +93,34 @@ const colorLocation = gl.getAttribLocation(program, "a_color");
 
 // Template lokal berpusat di (0, 0); posisi akhir diperoleh dengan offset.
 function templateFor(type) {
-  if (type === "rectangle") return [-.16,-.11, .16,-.11, -.16,.11, -.16,.11, .16,-.11, .16,.11];
-  if (type === "line") return [-.17,-.12, -.08,.12, 0,-.02, .09,.13, .17,-.1];
+  if (type === "rectangle") {
+    return [-.16, -.11, .16, -.11, -.16, .11, -.16, .11, .16, -.11, .16, .11];
+  }
+
+  if (type === "line") {
+    return [-.17, -.12, -.08, .12, 0, -.02, .09, .13, .17, -.1];
+  }
+
   if (type === "points") {
     const points = [];
-    for (let i = 0; i < 18; i += 1) { const a = i / 18 * Math.PI * 2; points.push(Math.cos(a) * .16, Math.sin(a) * .16); }
+    for (let i = 0; i < 18; i += 1) {
+      const a = i / 18 * Math.PI * 2;
+      points.push(Math.cos(a) * .16, Math.sin(a) * .16);
+    }
+
     return points;
   }
-  return [0,.16, -.15,-.12, .15,-.12]; // triangle
+
+  return [0, .16, -.15, -.12, .15, -.12]; // triangle
 }
 
 const palette = {
-  red: [1,.25,.32], green: [.28,1,.55], blue: [.28,.55,1], cyan: [.2,.9,1],
-  rgb: "rgb", random: [1,.65,.15],
+  red: [1, .25, .32],
+  green: [.28, 1, .55],
+  blue: [.28, .55, 1],
+  cyan: [.2, .9, 1],
+  rgb: "rgb",
+  random: [1, .65, .15],
 };
 let selectedColor = palette.cyan;
 let paused = false;
@@ -70,13 +130,43 @@ const keys = {};
 
 // Objek ini bergerak otomatis dan memantul pada batas X serta Y canvas/NDC.
 const bouncers = [
-  { type: "triangle", mode: "TRIANGLES", x: -.62, y: .40, vx: .006, vy: .004, color: palette.rgb },
-  { type: "line", mode: "LINE_STRIP", x: .35, y: .43, vx: -.004, vy: .006, color: palette.green },
-  { type: "triangle", mode: "TRIANGLES", x: .12, y: -.15, vx: .005, vy: -.004, color: palette.red },
+  {
+    type: "triangle",
+    mode: "TRIANGLES",
+    x: -.62,
+    y: .40,
+    vx: .006,
+    vy: .004,
+    color: palette.rgb,
+  },
+  {
+    type: "line",
+    mode: "LINE_STRIP",
+    x: .35,
+    y: .43,
+    vx: -.004,
+    vy: .006,
+    color: palette.green,
+  },
+  {
+    type: "triangle",
+    mode: "TRIANGLES",
+    x: .12,
+    y: -.15,
+    vx: .005,
+    vy: -.004,
+    color: palette.red,
+  },
 ];
 
 // Primitive terpilih digerakkan dengan Arrow/WASD secara state-based.
-const controlled = { type: "rectangle", mode: "TRIANGLES", x: -.48, y: -.63, color: selectedColor };
+const controlled = {
+  type: "rectangle",
+  mode: "TRIANGLES",
+  x: -.48,
+  y: -.63,
+  color: selectedColor,
+};
 
 function colorsFor(vertexCount, color) {
   // Tiga vertex pertama memakai merah, hijau, dan biru sehingga interpolasi RGB
@@ -84,24 +174,40 @@ function colorsFor(vertexCount, color) {
   if (color === "rgb") {
     const rgb = [[1, .12, .18], [.12, 1, .28], [.18, .42, 1]];
     const data = [];
-    for (let i = 0; i < vertexCount; i += 1) data.push(...rgb[i % rgb.length]);
+    for (let i = 0; i < vertexCount; i += 1) {
+      data.push(...rgb[i % rgb.length]);
+    }
+
     return new Float32Array(data);
   }
+
   const data = [];
   for (let i = 0; i < vertexCount; i += 1) {
     const factor = .65 + (i % 3) * .18; // variasi kecil menghasilkan gradasi vertex.
-    data.push(Math.min(1, color[0] * factor), Math.min(1, color[1] * factor), Math.min(1, color[2] * factor));
+    data.push(
+      Math.min(1, color[0] * factor),
+      Math.min(1, color[1] * factor),
+      Math.min(1, color[2] * factor),
+    );
   }
+
   return new Float32Array(data);
 }
 
 function boundsFor(type) {
   const local = templateFor(type);
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
   for (let i = 0; i < local.length; i += 2) {
-    minX = Math.min(minX, local[i]); maxX = Math.max(maxX, local[i]);
-    minY = Math.min(minY, local[i + 1]); maxY = Math.max(maxY, local[i + 1]);
+    minX = Math.min(minX, local[i]);
+    maxX = Math.max(maxX, local[i]);
+    minY = Math.min(minY, local[i + 1]);
+    maxY = Math.max(maxY, local[i + 1]);
   }
+
   return { minX, maxX, minY, maxY };
 }
 
@@ -112,20 +218,31 @@ function clampInsideCanvas(item) {
 }
 
 function modeToGl(mode) {
-  return { TRIANGLES: gl.TRIANGLES, LINE_STRIP: gl.LINE_STRIP, POINTS: gl.POINTS }[mode];
+  return {
+    TRIANGLES: gl.TRIANGLES,
+    LINE_STRIP: gl.LINE_STRIP,
+    POINTS: gl.POINTS,
+  }[mode];
 }
 
 function drawPrimitive(item) {
   const local = templateFor(item.type);
   const vertices = new Float32Array(local.length);
-  for (let i = 0; i < local.length; i += 2) { vertices[i] = local[i] + item.x; vertices[i + 1] = local[i + 1] + item.y; }
+  for (let i = 0; i < local.length; i += 2) {
+    vertices[i] = local[i] + item.x;
+    vertices[i + 1] = local[i + 1] + item.y;
+  }
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
   gl.enableVertexAttribArray(positionLocation);
   gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, colorsFor(vertices.length / 2, item.color), gl.DYNAMIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    colorsFor(vertices.length / 2, item.color),
+    gl.DYNAMIC_DRAW,
+  );
   gl.enableVertexAttribArray(colorLocation);
   gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
   gl.drawArrays(modeToGl(item.mode), 0, vertices.length / 2);
@@ -133,13 +250,21 @@ function drawPrimitive(item) {
 
 function drawGrid() {
   if (!ui.grid.checked) return;
+
   const grid = [];
-  for (let i = -1; i <= 1.001; i += .2) grid.push(i,-1, i,1, -1,i, 1,i);
+  for (let i = -1; i <= 1.001; i += .2) {
+    grid.push(i, -1, i, 1, -1, i, 1, i);
+  }
+
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(grid), gl.DYNAMIC_DRAW);
   gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, colorsFor(grid.length / 2, [.08,.22,.34]), gl.DYNAMIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    colorsFor(grid.length / 2, [.08, .22, .34]),
+    gl.DYNAMIC_DRAW,
+  );
   gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
   gl.drawArrays(gl.LINES, 0, grid.length / 2);
 }
