@@ -43,7 +43,7 @@
     </section>
 
     <aside class="controls panel">
-      <div class="panel-heading compact"><div><p class="section-kicker">PARAMETER CONTROL</p><h2>WebGL Controls</h2></div><span class="chapter-mark">02</span></div>
+      <div class="panel-heading compact"><div><p class="section-kicker">PARAMETER CONTROL</p><h2>WebGL Controls</h2></div><span class="chapter-mark">01</span></div>
       <label>Primitive selector
         <select id="primitiveType">
           <option value="triangle">Triangle</option>
@@ -66,7 +66,7 @@
       <div class="color-buttons">
         <button data-color="red">Red</button><button data-color="green">Green</button>
         <button data-color="blue">Blue</button><button data-color="cyan">Cyan</button>
-        <button data-color="random">Random</button>
+        <button data-color="rgb">RGB vertex</button><button data-color="random">Random</button>
       </div>
       <label class="check"><input id="gridToggle" type="checkbox" checked> Procedural grid pattern</label>
       <div class="actions"><button id="pauseButton" class="primary">Pause (P)</button><button id="resetButton">Reset (R)</button></div>
@@ -74,6 +74,180 @@
       <div class="help"><strong>Keyboard & mouse</strong><br>Arrow / WASD: move selected primitive<br>Left click: spawn primitive<br>Right click: undo last spawn</div>
     </aside>
     </div>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">LAPORAN PRAKTIKUM</p><h2>Ringkasan &amp; Dokumentasi</h2></div>
+        <span class="chapter-mark">02</span>
+      </div>
+      <div class="report-intro">
+        <p><strong>WebGL Primitive Playground</strong> adalah canvas WebGL2 interaktif yang menampilkan beberapa primitive (triangle, rectangle, line, points) sekaligus, lengkap dengan vertex color, animasi memantul, serta kontrol mouse &amp; keyboard. Seluruh render dilakukan lewat pipeline WebGL murni — tidak ada elemen visual yang digambar dengan Canvas 2D API.</p>
+      </div>
+
+      <div class="report-columns">
+        <div>
+          <h3>Ringkasan Kontrol</h3>
+          <table class="data-table">
+            <thead><tr><th>Input</th><th>Aksi</th><th>Tipe</th></tr></thead>
+            <tbody>
+              <tr><td>Dropdown <em>Primitive selector</em></td><td>Ganti bentuk primitive terkontrol (<code>controlled</code>)</td><td>UI change</td></tr>
+              <tr><td>Dropdown <em>Draw mode</em></td><td>Ganti draw mode primitive terkontrol</td><td>UI change</td></tr>
+              <tr><td>Slider <em>Movement speed</em></td><td>Ubah kecepatan tiga bouncing object</td><td>Parameter state</td></tr>
+              <tr><td>Tombol warna (Red/Green/Blue/Cyan/RGB vertex/Random)</td><td>Ganti warna primitive terkontrol &amp; primitive yang akan di-spawn</td><td>Event-based</td></tr>
+              <tr><td>Checkbox <em>Procedural grid pattern</em></td><td>Tampil/sembunyikan grid latar</td><td>UI change</td></tr>
+              <tr><td><kbd>W A S D</kbd> / Arrow</td><td>Gerakkan primitive terkontrol</td><td>State-based (keydown/keyup)</td></tr>
+              <tr><td><kbd>P</kbd></td><td>Pause / resume rendering loop</td><td>Event-based</td></tr>
+              <tr><td><kbd>R</kbd></td><td>Reset posisi &amp; hapus primitive spawn</td><td>Event-based</td></tr>
+              <tr><td>Klik kiri kanvas</td><td>Spawn primitive baru di posisi mouse (NDC)</td><td>Mouse event</td></tr>
+              <tr><td>Klik kanan kanvas</td><td>Undo — hapus primitive spawn terakhir</td><td>Mouse event</td></tr>
+              <tr><td>Gerak mouse</td><td>Update koordinat NDC pada HUD</td><td>Mouse event</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>Objek Grafis</h3>
+          <table class="data-table">
+            <thead><tr><th>Objek</th><th>Deskripsi</th></tr></thead>
+            <tbody>
+              <tr><td>2× Triangle bouncer</td><td>Bergerak &amp; memantul; satu di antaranya memakai mode warna <code>"rgb"</code> (3 warna vertex berbeda untuk interpolasi)</td></tr>
+              <tr><td>1× Line bouncer</td><td><code>LINE_STRIP</code> berwarna hijau, ikut memantul pada batas NDC</td></tr>
+              <tr><td>Primitive terkontrol</td><td>Bentuk default rectangle; bisa diganti tipe, draw mode, dan warnanya lewat panel kontrol</td></tr>
+              <tr><td>Primitive spawn</td><td>Salinan primitive terkontrol yang muncul setiap klik kiri di posisi mouse</td></tr>
+              <tr><td>Grid latar</td><td>Garis referensi <code>gl.LINES</code> dibangun lewat perulangan, opsional lewat checkbox</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Warna vertex dihasilkan oleh <code>colorsFor()</code>: untuk warna solid, tiap vertex diberi faktor kecerahan berbeda (<code>0.65 + (i % 3) * 0.18</code>) sehingga tetap ada gradasi; untuk mode <code>"rgb"</code>, tiga vertex pertama dipatok merah–hijau–biru agar interpolasi warnanya terlihat jelas.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel pipeline-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">ENGINEERING README</p><h2>Penjelasan Teknis</h2></div>
+        <span class="chapter-mark">03</span>
+      </div>
+
+      <div class="tech-block">
+        <h3>Pipeline WebGL</h3>
+        <pre class="code-block"><code>Canvas &#8594; WebGL2 Context &#8594; Viewport &#8594; Vertex Template (+ Offset) &#8594; GPU Buffer &#8594; Vertex Shader &#8594; Fragment Shader &#8594; Rasterizer &#8594; Draw Call</code></pre>
+        <p><code>makeProgram()</code> meng-compile &amp; me-link <code>vertexSource</code> dan <code>fragmentSource</code> menjadi satu <code>program</code> yang dipakai sepanjang aplikasi (<code>gl.useProgram()</code> hanya dipanggil sekali di awal). <code>positionBuffer</code> dan <code>colorBuffer</code> juga dibuat sekali di awal; setiap kali <code>drawPrimitive()</code> dipanggil, kedua buffer ini diisi ulang dengan data primitive yang sedang digambar sebelum <code>gl.drawArrays()</code> dieksekusi.</p>
+      </div>
+
+      <div class="tech-block">
+        <h3>Vertex Color dan Interpolasi</h3>
+        <p>Warna tiap vertex dihitung di <code>colorsFor()</code> lalu dikirim lewat attribute <code>a_color</code>. Vertex shader meneruskannya apa adanya ke <code>varying v_color</code>, dan GPU otomatis meng-interpolasi nilai ini di sepanjang permukaan primitive sebelum fragment shader mewarnai tiap pixel — tidak ada perhitungan warna per-pixel manual. Efek ini paling terlihat pada mode warna <code>"rgb"</code>, yang mematok tiga vertex pertama triangle ke merah, hijau, dan biru sehingga gradasinya kontras; warna solid lain (merah/hijau/biru/cyan) tetap diberi sedikit variasi kecerahan antar vertex lewat faktor <code>0.65 + (i % 3) * 0.18</code> supaya interpolasinya tidak rata.</p>
+      </div>
+
+      <div class="tech-block">
+        <h3>Multiple Primitive dan Draw Mode</h3>
+        <p><code>templateFor(type)</code> menyimpan vertex lokal tiap bentuk: triangle 3 vertex, rectangle 6 vertex (dua triangle, karena GPU tidak punya primitive quad bawaan), line 5 titik zig-zag untuk <code>LINE_STRIP</code>, dan points berupa 18 titik yang disusun melingkar lewat perulangan <code>for</code> untuk <code>POINTS</code>. Fungsi <code>modeToGl()</code> memetakan pilihan dropdown <em>Draw mode</em> ke enum WebGL yang sesuai, jadi mengganti draw mode benar-benar mengubah tahap primitive assembly, bukan cuma tampilannya saja.</p>
+      </div>
+
+      <div class="tech-block">
+        <h3>Dynamic Buffer (Tanpa Transformation Matrix)</h3>
+        <p>Praktikum 2 ini belum memakai transformation matrix — translasi masih dilakukan di sisi CPU. <code>drawPrimitive()</code> menjumlahkan template lokal dengan <code>item.x</code>/<code>item.y</code> untuk mendapat koordinat akhir, lalu array hasilnya di-upload ulang ke <code>positionBuffer</code> lewat <code>gl.bufferData(..., gl.DYNAMIC_DRAW)</code> setiap frame. Pola ini dipakai baik untuk tiga <em>bouncer</em> yang bergerak otomatis maupun primitive terkontrol yang digeser lewat keyboard.</p>
+      </div>
+
+      <div class="tech-block">
+        <h3>Keyboard</h3>
+        <p><code>keydown</code>/<code>keyup</code> hanya mengisi objek <code>keys</code> (disimpan dua kali — versi asli dan lowercase — agar Arrow key dan huruf WASD sama-sama terbaca). Fungsi <code>update()</code> membaca <code>keys</code> ini setiap frame untuk menggeser <code>controlled.x</code>/<code>controlled.y</code> secara kontinu (state-based) selama tombolnya masih ditahan, tanpa bergantung pada <code>event.repeat</code> browser yang temponya tidak konsisten. Tombol <kbd>P</kbd> dan <kbd>R</kbd> sebaliknya dicek langsung di listener <code>keydown</code> dengan syarat <code>!event.repeat</code>, karena aksinya (pause, reset) cukup terjadi sekali per tekan — event-based.</p>
+      </div>
+
+      <div class="tech-block">
+        <h3>Mouse ke NDC</h3>
+        <pre class="code-block"><code>ndcX = (mouseX &#8722; rect.left) / rect.width  &#215; 2 &#8722; 1
+ndcY = 1 &#8722; (mouseY &#8722; rect.top)  / rect.height &#215; 2</code></pre>
+        <p>Konversi ini dihitung langsung di listener <code>mousemove</code> memakai <code>canvas.getBoundingClientRect()</code>, disimpan di <code>mouseNdc</code>, dan ditulis ke HUD. Saat kanvas diklik, koordinat <code>mouseNdc</code> yang sama dipakai sebagai posisi primitive baru — bentuk, draw mode, dan warnanya disalin dari primitive terkontrol lalu didorong ke array <code>spawned</code>.</p>
+      </div>
+    </section>
+
+    <section class="panel checklist-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">HASIL AKHIR</p><h2>Checklist</h2></div>
+        <span class="chapter-mark">04</span>
+      </div>
+      <ul class="checklist">
+        <li><span>✓</span> Minimal tiga primitive <small>— triangle, rectangle, line, dan points tampil/dapat dipilih dalam satu scene</small></li>
+        <li><span>✓</span> Minimal dua draw mode <small>— TRIANGLES &amp; LINE_STRIP aktif secara default, POINTS &amp; LINES tersedia</small></li>
+        <li><span>✓</span> Vertex color dan interpolasi <small>— <code>colorsFor()</code> + mode warna <code>"rgb"</code></small></li>
+        <li><span>✓</span> Minimal tiga warna <small>— red, green, blue, cyan, rgb, dan random</small></li>
+        <li><span>✓</span> Object bergerak dan memantul <small>— tiga <code>bouncers</code> dengan kecepatan &amp; arah berbeda</small></li>
+        <li><span>✓</span> Mouse/keyboard interaction <small>— Arrow/WASD, klik kiri/kanan, dan mousemove</small></li>
+        <li><span>✓</span> Rendering loop <small>— <code>requestAnimationFrame(render)</code></small></li>
+        <li><span>✓</span> Background non-default <small>— <code>clearColor(0.02, 0.04, 0.09, 1)</code></small></li>
+        <li><span>✓</span> Source terpisah HTML, JS, CSS <small>— <code>index.html</code>, <code>main.js</code>, <code>style.css</code></small></li>
+        <li><span>✓</span> Challenge A–F <small>— lihat rincian di bagian Challenge Report</small></li>
+      </ul>
+    </section>
+
+    <section class="panel core-tasks-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">TUGAS INTI</p><h2>Tugas Inti yang Diselesaikan</h2></div>
+        <span class="chapter-mark">05</span>
+      </div>
+      <div class="core-task-grid">
+        <div class="core-task">
+          <span class="core-task-number">Inti 1</span>
+          <h3>Multiple Primitive</h3>
+          <p>Secara default, scene menampilkan 2 triangle, 1 line, dan 1 rectangle sekaligus — lebih dari tiga primitive dengan posisi &amp; ukuran berbeda, memakai dua draw mode berbeda (<code>TRIANGLES</code> &amp; <code>LINE_STRIP</code>) secara bersamaan.</p>
+        </div>
+        <div class="core-task">
+          <span class="core-task-number">Inti 2</span>
+          <h3>Colored Primitive</h3>
+          <p>Setiap primitive punya warna per-vertex lewat <code>colorsFor()</code>. Salah satu triangle bouncer memakai mode <code>"rgb"</code> sehingga tiga vertex-nya berwarna merah, hijau, biru berbeda — interpolasi warnanya terlihat jelas di permukaan triangle.</p>
+        </div>
+        <div class="core-task">
+          <span class="core-task-number">Inti 3</span>
+          <h3>Animasi</h3>
+          <p>Array <code>bouncers</code> berisi tiga objek dengan <code>vx</code>/<code>vy</code> masing-masing. Tiap frame posisinya diperbarui, dan arah dibalik saat bounding box-nya (<code>boundsFor()</code>) menyentuh batas NDC -1..1 — terus dianimasikan lewat <code>requestAnimationFrame</code>.</p>
+        </div>
+        <div class="core-task">
+          <span class="core-task-number">Inti 4</span>
+          <h3>Interaksi</h3>
+          <p>Kombinasi <strong>state-based</strong> (Arrow/WASD menggerakkan primitive terkontrol selama tombol ditahan) dan <strong>event-based</strong> (klik kiri spawn, klik kanan undo, <kbd>P</kbd> pause, <kbd>R</kbd> reset) — melebihi syarat minimal satu jenis interaksi.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel challenge-report">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHALLENGE REPORT</p><h2>Challenge yang Diselesaikan</h2></div>
+        <span class="chapter-mark">06</span>
+      </div>
+      <div class="challenge-grid">
+        <article class="challenge-card">
+          <span class="challenge-number">A</span>
+          <h3>Primitive Selector</h3>
+          <p>Dropdown <em>Primitive selector</em> mengganti <code>controlled.type</code> secara langsung, memicu <code>templateFor()</code> mengambil template vertex yang berbeda tanpa mempengaruhi objek lain.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">B</span>
+          <h3>Color Control</h3>
+          <p>Enam tombol warna (merah, hijau, biru, cyan, RGB vertex, random) mengganti <code>selectedColor</code> &amp; <code>controlled.color</code>, langsung mempengaruhi hasil <code>colorsFor()</code> pada frame berikutnya.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">C</span>
+          <h3>Spawn Primitive</h3>
+          <p>Klik kiri mengonversi posisi pixel ke NDC, menyalin bentuk &amp; warna primitive terkontrol ke array <code>spawned</code>; klik kanan membatalkan (pop) primitive spawn terakhir.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">D</span>
+          <h3>Multiple Moving Objects</h3>
+          <p>Tiga <code>bouncers</code> (2 triangle, 1 line) punya posisi awal, kecepatan, dan warna berbeda, masing-masing memantul independen pada batas NDC.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">E</span>
+          <h3>Procedural Grid Pattern</h3>
+          <p><code>drawGrid()</code> membangun garis grid lewat perulangan <code>for</code> dari -1 sampai 1 (step 0.2), digambar sebagai <code>gl.LINES</code> di lapisan paling belakang, bisa dimatikan lewat checkbox.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">F</span>
+          <h3>Simple HUD</h3>
+          <p>Elemen HTML di luar canvas menampilkan FPS (dihitung tiap 500ms), jumlah primitive aktif, draw mode primitive terkontrol, dan koordinat NDC mouse — seluruhnya lewat DOM, bukan render WebGL.</p>
+        </article>
+      </div>
+    </section>
+
     <footer class="page-footer"><span>BUILD 02.01</span><span>WEBGL 2.0 GRAPHICS</span><span>GROUP 04</span></footer>
   </main>
   <script src="main.js"></script>

@@ -59,7 +59,8 @@ function templateFor(type) {
 }
 
 const palette = {
-  red: [1,.25,.32], green: [.28,1,.55], blue: [.28,.55,1], cyan: [.2,.9,1], random: [1,.65,.15],
+  red: [1,.25,.32], green: [.28,1,.55], blue: [.28,.55,1], cyan: [.2,.9,1],
+  rgb: "rgb", random: [1,.65,.15],
 };
 let selectedColor = palette.cyan;
 let paused = false;
@@ -69,7 +70,7 @@ const keys = {};
 
 // Objek ini bergerak otomatis dan memantul pada batas X serta Y canvas/NDC.
 const bouncers = [
-  { type: "triangle", mode: "TRIANGLES", x: -.62, y: .40, vx: .006, vy: .004, color: palette.cyan },
+  { type: "triangle", mode: "TRIANGLES", x: -.62, y: .40, vx: .006, vy: .004, color: palette.rgb },
   { type: "line", mode: "LINE_STRIP", x: .35, y: .43, vx: -.004, vy: .006, color: palette.green },
   { type: "triangle", mode: "TRIANGLES", x: .12, y: -.15, vx: .005, vy: -.004, color: palette.red },
 ];
@@ -78,12 +79,36 @@ const bouncers = [
 const controlled = { type: "rectangle", mode: "TRIANGLES", x: -.48, y: -.63, color: selectedColor };
 
 function colorsFor(vertexCount, color) {
+  // Tiga vertex pertama memakai merah, hijau, dan biru sehingga interpolasi RGB
+  // terlihat jelas pada triangle; vertex berikutnya mengulang pola yang sama.
+  if (color === "rgb") {
+    const rgb = [[1, .12, .18], [.12, 1, .28], [.18, .42, 1]];
+    const data = [];
+    for (let i = 0; i < vertexCount; i += 1) data.push(...rgb[i % rgb.length]);
+    return new Float32Array(data);
+  }
   const data = [];
   for (let i = 0; i < vertexCount; i += 1) {
     const factor = .65 + (i % 3) * .18; // variasi kecil menghasilkan gradasi vertex.
     data.push(Math.min(1, color[0] * factor), Math.min(1, color[1] * factor), Math.min(1, color[2] * factor));
   }
   return new Float32Array(data);
+}
+
+function boundsFor(type) {
+  const local = templateFor(type);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < local.length; i += 2) {
+    minX = Math.min(minX, local[i]); maxX = Math.max(maxX, local[i]);
+    minY = Math.min(minY, local[i + 1]); maxY = Math.max(maxY, local[i + 1]);
+  }
+  return { minX, maxX, minY, maxY };
+}
+
+function clampInsideCanvas(item) {
+  const bounds = boundsFor(item.type);
+  item.x = Math.max(-1 - bounds.minX, Math.min(1 - bounds.maxX, item.x));
+  item.y = Math.max(-1 - bounds.minY, Math.min(1 - bounds.maxY, item.y));
 }
 
 function modeToGl(mode) {
@@ -124,17 +149,18 @@ function update() {
   const scale = Number(ui.speed.value);
   for (const item of bouncers) {
     item.x += item.vx * scale; item.y += item.vy * scale;
-    // Radius template ~0.17: pantul pada empat batas NDC.
-    if (item.x > .83 || item.x < -.83) { item.vx *= -1; item.x = Math.max(-.83, Math.min(.83, item.x)); }
-    if (item.y > .83 || item.y < -.83) { item.vy *= -1; item.y = Math.max(-.83, Math.min(.83, item.y)); }
+    const bounds = boundsFor(item.type);
+    // Pantulkan ketika vertex terluar menyentuh batas NDC (-1 sampai 1).
+    if (item.x + bounds.maxX >= 1 || item.x + bounds.minX <= -1) item.vx *= -1;
+    if (item.y + bounds.maxY >= 1 || item.y + bounds.minY <= -1) item.vy *= -1;
+    clampInsideCanvas(item);
   }
   const move = .016;
   if (keys.ArrowLeft || keys.a) controlled.x -= move;
   if (keys.ArrowRight || keys.d) controlled.x += move;
   if (keys.ArrowUp || keys.w) controlled.y += move;
   if (keys.ArrowDown || keys.s) controlled.y -= move;
-  controlled.x = Math.max(-.83, Math.min(.83, controlled.x));
-  controlled.y = Math.max(-.83, Math.min(.83, controlled.y));
+  clampInsideCanvas(controlled);
 }
 
 function drawScene() {
@@ -161,7 +187,7 @@ function reset() {
   ui.pause.textContent = "Pause (P)";
 }
 
-ui.type.addEventListener("change", () => { controlled.type = ui.type.value; });
+ui.type.addEventListener("change", () => { controlled.type = ui.type.value; clampInsideCanvas(controlled); });
 ui.mode.addEventListener("change", () => { controlled.mode = ui.mode.value; });
 ui.speed.addEventListener("input", () => { ui.speedValue.textContent = Number(ui.speed.value).toFixed(2); });
 ui.pause.addEventListener("click", () => { paused = !paused; ui.pause.textContent = paused ? "Resume (P)" : "Pause (P)"; });
@@ -187,7 +213,9 @@ canvas.addEventListener("mousemove", (event) => {
 });
 canvas.addEventListener("click", (event) => {
   if (event.button !== 0) return;
-  spawned.push({ type: controlled.type, mode: controlled.mode, x: mouseNdc[0], y: mouseNdc[1], color: [...controlled.color] });
+  const item = { type: controlled.type, mode: controlled.mode, x: mouseNdc[0], y: mouseNdc[1], color: controlled.color === "rgb" ? "rgb" : [...controlled.color] };
+  clampInsideCanvas(item);
+  spawned.push(item);
 });
 canvas.addEventListener("contextmenu", (event) => { event.preventDefault(); spawned.pop(); });
 
