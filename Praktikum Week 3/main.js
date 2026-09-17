@@ -508,6 +508,21 @@ function createRTMatrix(
   return matrix;
 }
 
+// Transform Order alternative: Scale -> Translate -> Rotate
+function createRTSMatrix(transform) {
+  const t = Mat3.translation(transform.x, transform.y);
+  const r = Mat3.rotation(degToRad(transform.rotation));
+  const s = Mat3.scaling(transform.scaleX, transform.scaleY);
+
+  let matrix = Mat3.identity();
+  // Multiplied right-to-left: R * T * S
+  matrix = Mat3.multiply(matrix, r);
+  matrix = Mat3.multiply(matrix, t);
+  matrix = Mat3.multiply(matrix, s);
+
+  return matrix;
+}
+
 // =========================================================
 // 9.5. Texture Loader Helper
 // =========================================================
@@ -578,6 +593,16 @@ function resetObjectA() {
     1.0;
 }
 
+const childObject = {
+  x: 0.4, // Offset from the parent
+  y: 0.0,
+  rotation: 0.0,
+  scaleX: 0.5, // Half the size
+  scaleY: 0.5
+};
+
+const colorChild = new Float32Array([1.0, 1.0, 0.0, 1.0]); // Yellow
+
 // =========================================================
 // 11. Object B dan Object C — animasi otomatis
 // =========================================================
@@ -595,17 +620,21 @@ const colorC = new Float32Array([
 ]);
 
 function createObjectCMatrix(seconds) {
-  const transformC = {
-    x: Math.cos(seconds * 2.0) * 0.5,
-    y: Math.sin(seconds * 2.0) * 0.5,
-    
-    rotation: seconds * -80.0,
-    
-    scaleX: 1.0, 
-    scaleY: 1.0
+  // 1. Local Transform (Just scale and local spin)
+  const localTransform = {
+    x: 0.0, y: 0.0, rotation: seconds * -80.0, scaleX: 1.0, scaleY: 1.0
   };
+  const localMatrix = createTRSMatrix(localTransform);
 
-  return createTRSMatrix(transformC);
+  // 2. Orbit Composition (Rotate around origin, then translate out by 0.5 radius)
+  const orbitRotation = Mat3.rotation(seconds * 2.0); // Spin around center
+  const orbitRadius = Mat3.translation(0.5, 0.0);     // Push outwards
+
+  // Multiply together: OrbitRotation * OrbitRadius * Local
+  let composedMatrix = Mat3.multiply(orbitRotation, orbitRadius);
+  composedMatrix = Mat3.multiply(composedMatrix, localMatrix);
+
+  return composedMatrix;
 }
 
 function createObjectBMatrix(
@@ -636,46 +665,68 @@ function createObjectBMatrix(
 }
 
 // =========================================================
-// 12. Keyboard Input
+// 12. Keyboard Input (Challenge A, B, C)
 // =========================================================
 
 const keys = {};
+let useTRSOrder = true; // Challenge C state
 
-window.addEventListener(
-  "keydown",
-  (event) => {
-    keys[
-      event.key.toLowerCase()
-    ] = true;
+window.addEventListener("keydown", (event) => {
+  keys[event.key.toLowerCase()] = true;
 
-    if (
-      event.key.startsWith(
-        "Arrow"
-      )
-    ) {
-      event.preventDefault();
-    }
+  if (event.key.startsWith("Arrow")) {
+    event.preventDefault();
+  }
 
-    // Aksi diskrit (event-based): Reset
-    if (
-      event.key.toLowerCase()
-        === "r"
-      &&
-      !event.repeat
-    ) {
+  // Diskrit actions (no repeat)
+  if (!event.repeat) {
+    const key = event.key.toLowerCase();
+    
+    // Challenge A: Reset
+    if (key === "r") {
       resetObjectA();
     }
+    
+    // Challenge B: Presets
+    if (key === "1") {
+      objectA.x = -0.4; objectA.y = 0.2; objectA.rotation = 0;
+      objectA.scaleX = 1.0; objectA.scaleY = 1.0;
+    }
+    if (key === "2") {
+      objectA.x = 0.0; objectA.y = 0.0; objectA.rotation = 45;
+      objectA.scaleX = 1.5; objectA.scaleY = 1.5;
+    }
+    if (key === "3") {
+      objectA.x = 0.3; objectA.y = -0.2; objectA.rotation = 90;
+      objectA.scaleX = 1.8; objectA.scaleY = 0.6;
+    }
+    
+    // Challenge C: Toggle Order
+    if (key === "t") {
+      useTRSOrder = !useTRSOrder;
+    }
   }
-);
+});
 
-window.addEventListener(
-  "keyup",
-  (event) => {
-    keys[
-      event.key.toLowerCase()
-    ] = false;
-  }
-);
+window.addEventListener("keyup", (event) => {
+  keys[event.key.toLowerCase()] = false;
+});
+
+canvas.addEventListener("mousedown", (event) => {
+  const rect = canvas.getBoundingClientRect();
+  
+  // Get pixel coordinates relative to canvas
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  
+  // Convert pixels to NDC (-1.0 to 1.0)
+  const ndcX = (x / canvas.width) * 2.0 - 1.0;
+  const ndcY = 1.0 - (y / canvas.height) * 2.0; // Flipped Y axis
+  
+  // Apply directly to Object A's position
+  objectA.x = ndcX;
+  objectA.y = ndcY;
+});
 
 // =========================================================
 // 13. Update Functions (state-based, continuous)
@@ -869,6 +920,8 @@ const scaleInfo =
     "scaleInfo"
   );
 
+const orderInfo = document.getElementById("orderInfo");
+
 function updateHUD() {
   positionInfo.textContent =
     `(${objectA.x.toFixed(2)}, ` +
@@ -983,10 +1036,7 @@ function drawScene(
   // World reference (origin, X/Y axis)
   drawAxis();
 
-  const matrixA =
-    createTRSMatrix(
-      objectA
-    );
+  const matrixA = useTRSOrder ? createTRSMatrix(objectA) : createRTSMatrix(objectA);
 
   const matrixB =
     createObjectBMatrix(
@@ -994,8 +1044,13 @@ function drawScene(
     );
 
   const matrixC = createObjectCMatrix(seconds);
+
+  childObject.rotation = seconds * 150.0; // Spin the child locally
+  const localChildMatrix = createTRSMatrix(childObject);
+  const worldChildMatrix = Mat3.multiply(matrixA, localChildMatrix);
   
   drawObject(matrixA, colorA, false, false, null); // Uses the solid colorA
+  drawObject(worldChildMatrix, colorChild, false, false, null);
   drawObject(matrixB, colorB, true, false, null);  // Overrides colorB, uses RGB gradient
   drawObject(matrixC, colorC, false, true, frierenTexture, quadVAO, 6);
 }
