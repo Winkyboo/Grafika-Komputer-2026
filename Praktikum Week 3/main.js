@@ -37,6 +37,9 @@ gl.viewport(
 const vertexShaderSource = `#version 300 es
 
 in vec2 a_position;
+in vec4 a_color;
+
+out vec4 v_color;
 
 uniform mat3 u_matrix;
 
@@ -54,20 +57,23 @@ void main() {
       0.0,
       1.0
     );
+    v_color = a_color;
 }
 `;
 
 const fragmentShaderSource = `#version 300 es
 
 precision highp float;
+in vec4 v_color;
 
 uniform vec4 u_color;
+uniform bool u_use_vertex_color;
 
 out vec4 outColor;
 
 void main() {
-  outColor =
-    u_color;
+  // outColor = u_color;
+  outColor = u_use_vertex_color ? v_color : u_color;
 }
 `;
 
@@ -222,6 +228,9 @@ const colorLocation =
     "u_color"
   );
 
+const colorAttribLocation = gl.getAttribLocation(program, "a_color");
+const useVertexColorLocation = gl.getUniformLocation(program, "u_use_vertex_color");
+
 // =========================================================
 // 6. VAO + Buffer untuk Triangle
 // =========================================================
@@ -259,6 +268,19 @@ gl.vertexAttribPointer(
   0,
   0
 );
+
+const triangleColors = new Float32Array([
+  1.0, 0.0, 0.0, 1.0, 
+  0.0, 1.0, 0.0, 1.0,
+  0.0, 0.0, 1.0, 1.0  
+]);
+
+const colorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, triangleColors, gl.STATIC_DRAW);
+
+gl.enableVertexAttribArray(colorAttribLocation);
+gl.vertexAttribPointer(colorAttribLocation, 4, gl.FLOAT, false, 0, 0);
 
 gl.bindVertexArray(
   null
@@ -341,7 +363,6 @@ function degToRad(
 // 9. Transform Composition Helpers
 // =========================================================
 
-// Urutan default praktikum ini: Scale -> Rotate -> Translate
 // (P' = T * R * S * P)
 function createTRSMatrix(
   transform
@@ -368,23 +389,9 @@ function createTRSMatrix(
   let matrix =
     Mat3.identity();
 
-  matrix =
-    Mat3.multiply(
-      matrix,
-      s
-    );
-
-  matrix =
-    Mat3.multiply(
-      matrix,
-      r
-    );
-
-  matrix =
-    Mat3.multiply(
-      matrix,
-      t
-    );
+  matrix = Mat3.multiply(matrix,t);
+  matrix = Mat3.multiply(matrix,r);
+  matrix = Mat3.multiply(matrix,s);
 
   return matrix;
 }
@@ -444,7 +451,7 @@ const objectA = {
 
 const colorA =
   new Float32Array([
-    0.10,
+    0.70,
     0.75,
     1.00,
     1.00
@@ -468,7 +475,7 @@ function resetObjectA() {
 }
 
 // =========================================================
-// 11. Object B — animasi otomatis
+// 11. Object B dan Object C — animasi otomatis
 // =========================================================
 
 const colorB =
@@ -478,6 +485,24 @@ const colorB =
     0.10,
     1.00
   ]);
+
+const colorC = new Float32Array([
+  0.20, 1.00, 0.40, 1.00 
+]);
+
+function createObjectCMatrix(seconds) {
+  const transformC = {
+    x: Math.cos(seconds * 2.0) * 0.5,
+    y: Math.sin(seconds * 2.0) * 0.5,
+    
+    rotation: seconds * -80.0,
+    
+    scaleX: 1.0, 
+    scaleY: 1.0
+  };
+
+  return createTRSMatrix(transformC);
+}
 
 function createObjectBMatrix(
   seconds
@@ -759,7 +784,8 @@ function updateHUD() {
 
 function drawObject(
   matrix,
-  color
+  color,
+  useVertexColor = false
 ) {
   gl.bindVertexArray(
     triangleVAO
@@ -776,6 +802,7 @@ function drawObject(
     color
   );
 
+  gl.uniform1i(useVertexColorLocation, useVertexColor ? 1 : 0);
   gl.drawArrays(
     gl.TRIANGLES,
     0,
@@ -799,6 +826,7 @@ function drawAxis() {
     axisColor
   );
 
+  gl.uniform1i(useVertexColorLocation, 0);
   gl.drawArrays(
     gl.LINES,
     0,
@@ -848,15 +876,11 @@ function drawScene(
       seconds
     );
 
-  drawObject(
-    matrixA,
-    colorA
-  );
-
-  drawObject(
-    matrixB,
-    colorB
-  );
+  const matrixC = createObjectCMatrix(seconds);
+  
+  drawObject(matrixA, colorA, false); // Uses the solid colorA
+  drawObject(matrixB, colorB, true);  // Overrides colorB, uses RGB gradient
+  drawObject(matrixC, colorC, false);
 }
 
 // =========================================================
@@ -911,7 +935,7 @@ requestAnimationFrame(
 // kedua fungsi berikut dengan parameter transform yang sama, lalu
 // bandingkan hasil matrix / posisi visualnya:
 //
-//   const matrixCaseA = createTRSMatrix(objectA);  // Scale -> Rotate -> Translate
+   const matrixCaseA = createTRSMatrix(objectA);  // Scale -> Rotate -> Translate
 //   const matrixCaseB = createRTMatrix(objectA);   // Translate -> Rotate (tanpa scale)
 //
 // Coba set objectA.x = 0.4, objectA.rotation = 90, lalu bandingkan
