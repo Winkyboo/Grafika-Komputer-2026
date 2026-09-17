@@ -579,6 +579,22 @@ function resetObjectA() {
 }
 
 // =========================================================
+// 10.5. Object Child (Challenge E) & Transform State (Challenge C)
+// =========================================================
+
+const objectChild = {
+  x: 0.3,          // Relatif terhadap Parent (Object A)
+  y: 0.0,
+  rotation: 0.0,
+  scaleX: 0.5,
+  scaleY: 0.5
+};
+
+const colorChild = new Float32Array([1.0, 0.3, 0.6, 1.0]);
+
+let useAlternativeOrder = false; // Toggle untuk Challenge C
+
+// =========================================================
 // 11. Object B dan Object C — animasi otomatis
 // =========================================================
 
@@ -595,17 +611,18 @@ const colorC = new Float32Array([
 ]);
 
 function createObjectCMatrix(seconds) {
-  const transformC = {
-    x: Math.cos(seconds * 2.0) * 0.5,
-    y: Math.sin(seconds * 2.0) * 0.5,
-    
-    rotation: seconds * -80.0,
-    
-    scaleX: 1.0, 
-    scaleY: 1.0
-  };
+  // Challenge F: Orbit murni dengan komposisi Matriks
+  const orbitRotation = Mat3.rotation(seconds * 1.5); 
+  const orbitRadius = Mat3.translation(0.6, 0.0);
+  const localRotation = Mat3.rotation(seconds * -3.0); 
+  
+  let matrix = Mat3.identity();
+  // Urutan: Putar di pusat -> Geser sejauh radius -> Putar di tempat
+  matrix = Mat3.multiply(matrix, orbitRotation);
+  matrix = Mat3.multiply(matrix, orbitRadius);
+  matrix = Mat3.multiply(matrix, localRotation);
 
-  return createTRSMatrix(transformC);
+  return matrix;
 }
 
 function createObjectBMatrix(
@@ -641,41 +658,58 @@ function createObjectBMatrix(
 
 const keys = {};
 
-window.addEventListener(
-  "keydown",
-  (event) => {
-    keys[
-      event.key.toLowerCase()
-    ] = true;
+window.addEventListener("keydown", (event) => {
+  const key = event.key.toLowerCase();
+  keys[key] = true;
 
-    if (
-      event.key.startsWith(
-        "Arrow"
-      )
-    ) {
-      event.preventDefault();
+  if (event.key.startsWith("Arrow")) event.preventDefault();
+
+  if (!event.repeat) {
+    // Challenge A: Reset
+    if (key === "r") resetObjectA();
+    
+    // Challenge C: Toggle Transform Order
+    if (key === "t") useAlternativeOrder = !useAlternativeOrder;
+
+    // Challenge B: Transform Presets
+    if (key === "1") {
+      objectA.x = -0.4; objectA.y = 0.2; objectA.rotation = 0; 
+      objectA.scaleX = 1.0; objectA.scaleY = 1.0;
     }
-
-    // Aksi diskrit (event-based): Reset
-    if (
-      event.key.toLowerCase()
-        === "r"
-      &&
-      !event.repeat
-    ) {
-      resetObjectA();
+    if (key === "2") {
+      objectA.x = 0.0; objectA.y = 0.0; objectA.rotation = 45; 
+      objectA.scaleX = 1.5; objectA.scaleY = 1.5;
+    }
+    if (key === "3") {
+      objectA.x = 0.3; objectA.y = -0.2; objectA.rotation = 90; 
+      objectA.scaleX = 1.8; objectA.scaleY = 0.6;
     }
   }
-);
+});
 
-window.addEventListener(
-  "keyup",
-  (event) => {
-    keys[
-      event.key.toLowerCase()
-    ] = false;
-  }
-);
+window.addEventListener("keyup", (event) => {
+  const key = event.key.toLowerCase();
+  keys[key] = false; 
+});
+
+// =========================================================
+// 12.5. Mouse Input (Challenge D)
+// =========================================================
+
+canvas.addEventListener("mousedown", (event) => {
+  const rect = canvas.getBoundingClientRect();
+  
+  // Posisi klik relatif terhadap kanvas
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  // Konversi Pixel ke NDC (-1.0 s/d 1.0)
+  const ndcX = (mouseX / canvas.width) * 2.0 - 1.0;
+  const ndcY = (1.0 - (mouseY / canvas.height)) * 2.0 - 1.0; // Y di WebGL menghadap ke atas
+
+  objectA.x = ndcX;
+  objectA.y = ndcY;
+});
 
 // =========================================================
 // 13. Update Functions (state-based, continuous)
@@ -684,38 +718,23 @@ window.addEventListener(
 const moveSpeed =
   0.65;
 
-function updateTranslation(
-  dt
-) {
-  if (
-    keys["arrowleft"]
-  ) {
-    objectA.x -=
-      moveSpeed * dt;
+function updateTranslation(dt) {
+  if (keys["arrowleft"] || keys["a"]) {
+    objectA.x -= moveSpeed * dt;
   }
 
-  if (
-    keys["arrowright"]
-  ) {
-    objectA.x +=
-      moveSpeed * dt;
+  if (keys["arrowright"] || keys["d"]) {
+    objectA.x += moveSpeed * dt;
   }
 
-  if (
-    keys["arrowup"]
-  ) {
-    objectA.y +=
-      moveSpeed * dt;
+  if (keys["arrowup"] || keys["w"]) {
+    objectA.y += moveSpeed * dt;
   }
 
-  if (
-    keys["arrowdown"]
-  ) {
-    objectA.y -=
-      moveSpeed * dt;
+  if (keys["arrowdown"] || keys["s"]) {
+    objectA.y -= moveSpeed * dt;
   }
 }
-
 const rotationSpeed =
   100.0;
 
@@ -791,63 +810,36 @@ function updateNonUniformScale(
 }
 
 function clampObjectA() {
-  objectA.x =
-    Math.max(
-      -0.8,
-      Math.min(
-        0.8,
-        objectA.x
-      )
-    );
+  // 1. Batasi skala terlebih dahulu agar perhitungannya akurat
+  objectA.scaleX = Math.max(0.2, Math.min(2.5, objectA.scaleX));
+  objectA.scaleY = Math.max(0.2, Math.min(2.5, objectA.scaleY));
 
-  objectA.y =
-    Math.max(
-      -0.75,
-      Math.min(
-        0.75,
-        objectA.y
-      )
-    );
+  // 2. Hitung jarak ukuran dari titik origin (0,0) ke ujung-ujung geometri
+  // Berdasarkan 'vertices' Anda: max X = 0.18, max Y atas = 0.22, min Y bawah = 0.15
+  const paddingX = 0.18 * objectA.scaleX;
+  const paddingTop = 0.22 * objectA.scaleY;
+  const paddingBottom = 0.15 * objectA.scaleY;
 
-  objectA.scaleX =
-    Math.max(
-      0.2,
-      Math.min(
-        2.5,
-        objectA.scaleX
-      )
-    );
+  // 3. Tentukan batas ruang WebGL (-1.0 sampai 1.0) dikurangi ukuran objek
+  const minX = -1.0 + paddingX;
+  const maxX =  1.0 - paddingX;
+  const minY = -1.0 + paddingBottom;
+  const maxY =  1.0 - paddingTop;
 
-  objectA.scaleY =
-    Math.max(
-      0.2,
-      Math.min(
-        2.5,
-        objectA.scaleY
-      )
-    );
+  // 4. Terapkan batasan posisi yang sudah dinamis
+  objectA.x = Math.max(minX, Math.min(maxX, objectA.x));
+  objectA.y = Math.max(minY, Math.min(maxY, objectA.y));
 }
 
-function update(
-  dt
-) {
-  updateTranslation(
-    dt
-  );
-
-  updateRotation(
-    dt
-  );
-
-  updateUniformScale(
-    dt
-  );
-
-  updateNonUniformScale(
-    dt
-  );
-
+function update(dt) {
+  updateTranslation(dt);
+  updateRotation(dt);
+  updateUniformScale(dt);
+  updateNonUniformScale(dt);
   clampObjectA();
+
+  // Animasi lokal untuk Object Child (berputar konstan)
+  objectChild.rotation += 150.0 * dt; 
 }
 
 // =========================================================
@@ -869,17 +861,20 @@ const scaleInfo =
     "scaleInfo"
   );
 
+const orderInfo = 
+  document.getElementById(
+    "orderInfo"
+  );
+
 function updateHUD() {
-  positionInfo.textContent =
-    `(${objectA.x.toFixed(2)}, ` +
-    `${objectA.y.toFixed(2)})`;
-
-  rotationInfo.textContent =
-    `${objectA.rotation.toFixed(1)}°`;
-
-  scaleInfo.textContent =
-    `(${objectA.scaleX.toFixed(2)}, ` +
-    `${objectA.scaleY.toFixed(2)})`;
+  positionInfo.textContent = `(${objectA.x.toFixed(2)}, ${objectA.y.toFixed(2)})`;
+  rotationInfo.textContent = `${objectA.rotation.toFixed(1)}°`;
+  scaleInfo.textContent = `(${objectA.scaleX.toFixed(2)}, ${objectA.scaleY.toFixed(2)})`;
+  
+  // Memperbarui UI teks Transform Order
+  orderInfo.textContent = useAlternativeOrder 
+    ? "Translate → Rotate (Orbit)" 
+    : "Scale → Rotate → Translate";
 }
 
 // =========================================================
@@ -955,48 +950,31 @@ function drawAxis() {
 // 16. Scene Rendering
 // =========================================================
 
-function drawScene(
-  seconds
-) {
-  gl.viewport(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+function drawScene(seconds) {
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clearColor(0.03, 0.05, 0.10, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.useProgram(program);
 
-  gl.clearColor(
-    0.03,
-    0.05,
-    0.10,
-    1.0
-  );
-
-  gl.clear(
-    gl.COLOR_BUFFER_BIT
-  );
-
-  gl.useProgram(
-    program
-  );
-
-  // World reference (origin, X/Y axis)
   drawAxis();
 
-  const matrixA =
-    createTRSMatrix(
-      objectA
-    );
+  // Challenge C: Menentukan urutan matriks Object A berdasarkan Toggle
+  const matrixA = useAlternativeOrder 
+    ? createRTMatrix(objectA)  // Translate -> Rotate (menyebabkan orbit jika di luar titik origin)
+    : createTRSMatrix(objectA); // Scale -> Rotate -> Translate (normal)
 
-  const matrixB =
-    createObjectBMatrix(
-      seconds
-    );
+  // Challenge E: Hierarchical Parent-Child Matrix
+  const localChildMatrix = createTRSMatrix(objectChild);
+  // Rumus Scene Graph: ChildWorld = ParentWorld * ChildLocal
+  const matrixChildWorld = Mat3.multiply(matrixA, localChildMatrix); 
 
+  const matrixB = createObjectBMatrix(seconds);
   const matrixC = createObjectCMatrix(seconds);
   
-  drawObject(matrixA, colorA, false, false, null); // Uses the solid colorA
-  drawObject(matrixB, colorB, true, false, null);  // Overrides colorB, uses RGB gradient
+  // Render Object
+  drawObject(matrixA, colorA, false, false, null); 
+  drawObject(matrixChildWorld, colorChild, false, false, null); // Render Child
+  drawObject(matrixB, colorB, true, false, null);  
   drawObject(matrixC, colorC, false, true, frierenTexture, quadVAO, 6);
 }
 

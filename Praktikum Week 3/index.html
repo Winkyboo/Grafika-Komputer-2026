@@ -1,99 +1,364 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-
-  <title>
-    Interactive Transformation Playground
-  </title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Praktikum 3 | Transformation Playground</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
-
-  <main class="app">
-    <header>
-      <h1>
-        Interactive Transformation Playground
-      </h1>
-
-      <p>
-        WebGL — Pertemuan 3
-      </p>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 03</p>
+        <h1>Output Praktikum 3 <span>— Interactive Transformation Playground</span></h1>
+        <p class="subtitle">Eksperimen matriks transformasi, world/local coordinate, hierarki scene graph, dan tekstur di WebGL.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 4</span>
+        <span class="status"><i></i> Semua syarat & challenge selesai</span>
+        <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+      </div>
     </header>
 
-    <canvas
-      id="glCanvas"
-      width="900"
-      height="600">
-    </canvas>
-
-    <section id="hud">
-      <div>
-        Position:
-        <span id="positionInfo"></span>
+    <div class="content-grid">
+    <section class="stage panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">MAIN QUEST</p><h2>WebGL Transformation Canvas</h2></div>
+        <span class="canvas-size">900 × 600 PX</span>
       </div>
-
-      <div>
-        Rotation:
-        <span id="rotationInfo"></span>
+      <div class="canvas-wrap">
+      <canvas id="glCanvas" width="900" height="600"></canvas>
+      <span class="canvas-label">LIVE RENDER</span>
       </div>
-
-      <div>
-        Scale:
-        <span id="scaleInfo"></span>
-      </div>
-
-      <div>
-        Order:
-        <span id="orderInfo">
-          Scale → Rotate → Translate
-        </span>
+      <div class="hud">
+        <p>Position <strong id="positionInfo">(0.00, 0.00)</strong></p>
+        <p>Rotation <strong id="rotationInfo">0.0°</strong></p>
+        <p>Scale <strong id="scaleInfo">(1.00, 1.00)</strong></p>
+        <p>Order <strong id="orderInfo">Scale → Rotate → Translate</strong></p>
       </div>
     </section>
 
-    <section class="controls">
-      <strong>Kontrol:</strong>
+<aside class="controls panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <!-- CSS Lokal Khusus Panel Ini -->
+      <style>
+        .control-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+        .control-card { padding: 12px 14px; background: var(--panel-deep); border: 1px solid var(--line); transition: transform 0.2s ease; }
+        .control-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .control-card kbd { padding: 2px 5px; border: 1px solid #667596; background: #11182d; color: var(--yellow); font-size: 10px; font-weight: 900; border-radius: 3px; margin: 0 1px; }
+        .legend-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(11, 17, 35, 0.4); border: 1px dashed var(--line); margin-bottom: 8px; transition: border-color 0.2s ease; }
+        .legend-item:hover { border-color: var(--cyan); }
+        .legend-shape { width: 16px; height: 16px; flex-shrink: 0; }
+        .shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+      </style>
 
-      <span>
-        Arrow Keys = Move
-      </span>
+      <div>
+        <div class="panel-heading compact">
+          <div><p class="section-kicker">PARAMETER CONTROL</p><h2>Input &amp; Legend</h2></div>
+          <span class="chapter-mark">01</span>
+        </div>
 
-      <span>
-        Q/E = Rotate
-      </span>
+        <!-- Bagian 1: Grid Kontrol -->
+        <div class="control-grid">
+          <!-- Kartu: Translasi -->
+          <div class="control-card" style="border-top: 3px solid var(--cyan);">
+            <strong style="display: block; color: var(--cyan); font-size: 11px; margin-bottom: 8px; letter-spacing: 1px;">TRANSLATION</strong>
+            <div style="font-size: 11px; color: var(--muted); line-height: 2;">
+              <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Move<br>
+              <kbd>L-Click</kbd> Warp to NDC
+            </div>
+          </div>
+          
+          <!-- Kartu: Rotasi & Skala Seragam -->
+          <div class="control-card" style="border-top: 3px solid var(--yellow);">
+            <strong style="display: block; color: var(--yellow); font-size: 11px; margin-bottom: 8px; letter-spacing: 1px;">ROTATION &amp; SCALE</strong>
+            <div style="font-size: 11px; color: var(--muted); line-height: 2;">
+              <kbd>Q</kbd> / <kbd>E</kbd> Rotate<br>
+              <kbd>+</kbd> / <kbd>-</kbd> Uniform Scale
+            </div>
+          </div>
 
-      <span>
-        +/- = Uniform Scale
-      </span>
+          <!-- Kartu: Skala Sumbu -->
+          <div class="control-card" style="border-top: 3px solid var(--pink);">
+            <strong style="display: block; color: var(--pink); font-size: 11px; margin-bottom: 8px; letter-spacing: 1px;">AXIS SCALING</strong>
+            <div style="font-size: 11px; color: var(--muted); line-height: 2;">
+              <kbd>Z</kbd> / <kbd>X</kbd> Scale X-Axis<br>
+              <kbd>C</kbd> / <kbd>V</kbd> Scale Y-Axis
+            </div>
+          </div>
 
-      <span>
-        Z/X = Scale X
-      </span>
+          <!-- Kartu: Utilitas -->
+          <div class="control-card" style="border-top: 3px solid #4cdb99;">
+            <strong style="display: block; color: #4cdb99; font-size: 11px; margin-bottom: 8px; letter-spacing: 1px;">UTILITY &amp; MODES</strong>
+            <div style="font-size: 11px; color: var(--muted); line-height: 2;">
+              <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> Presets<br>
+              <kbd>T</kbd> Matrix | <kbd>R</kbd> Reset
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <span>
-        C/V = Scale Y
-      </span>
+      <!-- Bagian 2: Legend Scene (Mengisi ruang bawah) -->
+      <div>
+        <p class="section-kicker" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px;">SCENE LEGEND</p>
+        
+        <div class="legend-item">
+          <div class="legend-shape shape-triangle" style="background: #b3c2ff;"></div>
+          <div style="font-size: 11px; color: var(--muted); line-height: 1.5;">
+            <strong style="color: var(--ink);">Player (Object A)</strong><br>Terkontrol keyboard, dibatasi padding dinamis.
+          </div>
+        </div>
 
-      <span>
-        R = Reset
-      </span>
+        <div class="legend-item">
+          <div class="legend-shape shape-triangle" style="background: #ff4d94; transform: scale(0.7);"></div>
+          <div style="font-size: 11px; color: var(--muted); line-height: 1.5;">
+            <strong style="color: var(--ink);">Child Node</strong><br>Mewarisi matriks dunia (World Matrix) dari Player.
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <div class="legend-shape shape-triangle" style="background: linear-gradient(90deg, #ff0000, #00ff00, #0000ff);"></div>
+          <div style="font-size: 11px; color: var(--muted); line-height: 1.5;">
+            <strong style="color: var(--ink);">Entity (Object B)</strong><br>Animasi rotasi dan <i>pulsing scale</i> mandiri.
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <!-- Ganti FrierenCry.png jika pathnya berbeda -->
+          <div class="legend-shape" style="background: url('./FrierenCry.png') center/cover; border: 1px solid #43537e; border-radius: 2px;"></div>
+          <div style="font-size: 11px; color: var(--muted); line-height: 1.5;">
+            <strong style="color: var(--ink);">Texture Quad</strong><br>Animasi orbit menggunakan komposisi matriks.
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    </div>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">LAPORAN PRAKTIKUM</p><h2>Ringkasan &amp; Dokumentasi</h2></div>
+        <span class="chapter-mark">02</span>
+      </div>
+      <div class="report-intro">
+        <p><strong>Interactive Transformation Playground</strong> ini mendemonstrasikan implementasi Matriks Transformasi (Translasi, Rotasi, Skala) pada arsitektur WebGL2. Geometri objek dipertahankan secara konstan di <em>Local Space</em> (CPU), sementara pemosisian akhir pada layar dihitung secara matematis menggunakan pengalian matriks <em>Column-Major</em> pada GPU melalui variabel seragam (<code>u_matrix</code>).</p>
+      </div>
+
+      <div class="report-columns">
+        <div>
+          <h3>Konvensi Matriks (matrix3.js)</h3>
+          <table class="data-table">
+            <thead><tr><th>Transformasi</th><th>Logika Dasar</th><th>Operasi</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Identity</strong></td><td>Matriks dasar yang tidak merubah nilai</td><td><code>[1, 0, 0, 0, 1, 0, 0, 0, 1]</code></td></tr>
+              <tr><td><strong>Translation</strong></td><td>Menambahkan offset (tx, ty)</td><td><code>x' = x + tx</code> | <code>y' = y + ty</code></td></tr>
+              <tr><td><strong>Rotation</strong></td><td>Rotasi pivot 2D (Radian)</td><td><code>x' = x cosθ - y sinθ</code></td></tr>
+              <tr><td><strong>Scaling</strong></td><td>Perkalian ukuran (sx, sy)</td><td><code>x' = sx * x</code> | <code>y' = sy * y</code></td></tr>
+              <tr><td><strong>Multiply</strong></td><td>Penggabungan matriks</td><td>P' = M2 * M1 * P</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>Objek Scene Grafis</h3>
+          <table class="data-table">
+            <thead><tr><th>Objek</th><th>Deskripsi</th></tr></thead>
+            <tbody>
+              <tr><td>Object A (Player)</td><td>Segitiga interaktif terkontrol keyboard dengan <em>clamping</em> dinamis berdasarkan skala objek.</td></tr>
+              <tr><td>Object Child (Pink)</td><td>Terikat hierarki Matriks dengan Object A (Parent * ChildLocal), ikut bergerak & berotasi.</td></tr>
+              <tr><td>Object B (Jeruk)</td><td>Segitiga dengan animasi rotasi konstan dan <em>pulsing scale</em> seragam via gradien vertex.</td></tr>
+              <tr><td>Object C (Frieren)</td><td>Kotak (Quad) dengan tekstur eksternal, beranimasi mengorbit dari pusat dunia (origin).</td></tr>
+              <tr><td>Axis Reference</td><td>Garis X dan Y konstan untuk memperjelas batas World Origin (0,0).</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
+
+    <section class="panel pipeline-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">ENGINEERING README</p><h2>Penjelasan Teknis</h2></div>
+        <span class="chapter-mark">03</span>
+      </div>
+
+      <div class="tech-block tech-cyan">
+        <span class="tech-index">01</span>
+        <h3>Uniform Matrix & Homogeneous Coordinates</h3>
+        <p>Berbeda dengan praktikum sebelumnya yang mengubah buffer tiap frame, di sini <em>position buffer</em> tetap statis. Vertex ditarik menjadi sistem 3D (Homogeneous) dengan <code>vec3(a_position, 1.0)</code> di <em>Vertex Shader</em>, lalu dikalikan dengan <code>u_matrix</code> yang dikirim CPU. Ini sangat menghemat performa CPU karena GPU menghitung transformasinya secara paralel.</p>
+      </div>
+
+      <div class="tech-block tech-yellow">
+        <span class="tech-index">02</span>
+        <h3>Transform Order (TRS)</h3>
+        <pre class="code-block"><code>// Column-Vector Convention: P' = T * R * S * P
+matrix = Mat3.multiply(matrix, T);
+matrix = Mat3.multiply(matrix, R);
+matrix = Mat3.multiply(matrix, S);</code></pre>
+        <p>Urutan perkalian matriks ini sangat penting karena perkalian matriks tidak komutatif. TRS (Scale, lalu Rotate, lalu Translate) akan membuat objek membesar secara proporsional, berputar di tempat asal lokalnya, baru kemudian digeser ke posisi dunia.</p>
+      </div>
+
+      <div class="tech-block tech-pink">
+        <span class="tech-index">03</span>
+        <h3>Hierarchical Scene Graph (Parent-Child)</h3>
+        <p>Sistem <em>Parent-Child</em> disimulasikan pada Object A dan Object Child (segitiga pink). Matriks <em>Child</em> tidak dikalikan dengan identitas dunia, melainkan dengan matriks dunia dari induknya: <code>ChildWorld = ParentWorld * ChildLocal</code>. Akibatnya, saat Object A bergeser atau berotasi, Child akan otomatis mengikuti dengan tetap menjaga offset lokalnya.</p>
+      </div>
+
+      <div class="tech-block tech-green">
+        <span class="tech-index">04</span>
+        <h3>Texture Mapping 2D</h3>
+        <p>Fungsi <code>loadTexture</code> menginisialisasi tekstur tunggal 1x1 piksel sebagai tempat (<em>placeholder</em>) sementara, lalu mengunduh gambar asinkronus (CORS <em>anonymous</em>). <em>Fragment Shader</em> diatur dengan uniform <em>toggle</em> (<code>u_use_texture</code>) dan <code>sampler2D</code> untuk menarik warna piksel secara presisi dari UV <em>texcoords</em>.</p>
+      </div>
+
+      <div class="tech-block tech-purple">
+        <span class="tech-index">05</span>
+        <h3>State-Based Input & Delta Time</h3>
+        <p>Kontrol objek dikelola lewat manipulasi <em>state map</em> <code>keys</code> yang dicatat melalui event <code>keydown</code> dan <code>keyup</code>. Laju pergerakan diatur berkesinambungan dengan variabel <code>dt</code> (<em>Delta Time</em>, selisih waktu antar frame) memastikan kecepatan tetap konsisten pada berbagai kondisi <em>Refresh Rate</em> layar.</p>
+      </div>
+
+      <div class="tech-block tech-orange">
+        <span class="tech-index">06</span>
+        <h3>Dynamic Screen Clamping</h3>
+        <p>Untuk mencegah objek pemain tembus layar saat ukurannya membesar (<em>Scale</em>), fungsi batas ruang dinamis digunakan. Batas <code>1.0</code> sampai <code>-1.0</code> dikurangi <em>padding</em> fisik objek yang sudah dikalikan skala terkini (<code>vertexSize * object.scale</code>), mengunci presisi tepi geometri ke tepi Canvas.</p>
+      </div>
+    </section>
+
+    <section class="panel core-tasks-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">TUGAS INTI</p><h2>Capaian Utama Praktikum</h2></div>
+        <span class="chapter-mark">04</span>
+      </div>
+      <div class="core-task-grid">
+        <div class="core-task core-cyan">
+          <span class="core-task-number">Inti 1</span>
+          <h3>Matrix Uniform & Homogeneous</h3>
+          <p>Mempertahankan geometri objek pada <em>local coordinate</em> GPU, lalu menggeser posisinya menggunakan matriks transformasi 3x3 yang dikirim sebagai <code>uniform</code> ke Vertex Shader.</p>
+        </div>
+        <div class="core-task core-yellow">
+          <span class="core-task-number">Inti 2</span>
+          <h3>Reusable Geometry Buffer</h3>
+          <p>Mendemonstrasikan efisiensi memori dengan menggunakan satu data geometri (segitiga) untuk merender beberapa objek (Object A dan B) di posisi <em>world coordinate</em> yang berbeda.</p>
+        </div>
+        <div class="core-task core-pink">
+          <span class="core-task-number">Inti 3</span>
+          <h3>State-Based Input & Delta Time</h3>
+          <p>Mengelola pergerakan interaktif (translasi, rotasi, skala) secara kontinu menggunakan <em>state keyboard</em> (bukan sekadar <em>event-based</em>) dan <em>deltaTime</em> agar kecepatan konsisten.</p>
+        </div>
+        <div class="core-task core-green">
+          <span class="core-task-number">Inti 4</span>
+          <h3>Transform Order & Animasi</h3>
+          <p>Membuktikan pengaruh komposisi pengalian matriks (T × R × S vs R × T) terhadap <em>pivot</em> rotasi objek, serta mengimplementasikan animasi parametrik otomatis (putaran & detak skala).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">PENGUJIAN</p><h2>Tabel Test Case</h2></div>
+        <span class="chapter-mark">05</span>
+      </div>
+
+      <!-- Blok penjelasan status pengujian -->
+      <div class="report-intro" style="margin-bottom: 24px; border-left-color: #4cdb99;">
+        <p><strong>Status Pengujian: Lulus Uji (17/17).</strong> Seluruh fungsionalitas interaktif dan parameter transformasi telah diverifikasi. Objek merespons <em>state-based input</em> secara akurat, logika perkalian matriks berjalan sesuai hierarki (TRS & Parent-Child), dan tidak ditemukan anomali memori maupun error pada konsol WebGL.</p>
+      </div>
+      
+      <div class="report-columns">
+        <!-- Tabel Bagian Kiri -->
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 30px;">No.</th>
+                <th>Pengujian</th>
+                <th>Hasil yang Diharapkan</th>
+                <th style="width: 50px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Load halaman</td><td>Canvas tampil</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>2</td><td>Identity matrix</td><td>Object tampil tanpa transform</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>3</td><td>Arrow Left/Right</td><td>Translation X kontinu</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>4</td><td>Arrow Up/Down</td><td>Translation Y kontinu</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>5</td><td>Q/E</td><td>Rotation berjalan</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>6</td><td>+/-</td><td>Uniform scaling berjalan</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>7</td><td>Z/X</td><td>Scale X berubah</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>8</td><td>C/V</td><td>Scale Y berubah</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>9</td><td>R</td><td>Transform kembali ke awal</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tabel Bagian Kanan -->
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 30px;">No.</th>
+                <th>Pengujian</th>
+                <th>Hasil yang Diharapkan</th>
+                <th style="width: 50px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>10</td><td>Object B</td><td>Rotation otomatis</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>11</td><td>Object B</td><td>Animated scaling</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>12</td><td>Dua object</td><td>Menggunakan geometry yang sama</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>13</td><td>HUD</td><td>Nilai transform berubah</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>14</td><td>Transform order</td><td>Hasil visual berbeda</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>15</td><td>Axis</td><td>Origin dan sumbu terlihat</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>16</td><td>Pivot</td><td>Pivot dapat diamati</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>17</td><td>Console</td><td>Tidak ada error normal</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel challenge-report">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHALLENGE REPORT</p><h2>Challenge yang Diselesaikan</h2></div>
+        <span class="chapter-mark">06</span>
+      </div>
+      <div class="challenge-grid">
+        <article class="challenge-card">
+          <span class="challenge-number">A</span>
+          <h3>Reset Transform</h3>
+          <p>Tombol <kbd>R</kbd> bersifat diskrit (Event-based) mereset translasi ke (-0.35, 0), skala ke (1, 1), dan sudut putaran ke 0° memulihkan wujud awal.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">B</span>
+          <h3>Transform Presets</h3>
+          <p>Tombol <kbd>1</kbd>, <kbd>2</kbd>, dan <kbd>3</kbd> menyediakan pintasan konfigurasi langsung menuju tiga set parameter Posisi, Skala, dan Orientasi yang berbeda secara instan.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">C</span>
+          <h3>Toggle Order & HUD</h3>
+          <p>Tombol <kbd>T</kbd> mengganti aliran hitung dari matriks TRS normal ke matriks Translate → Rotate, mengubah efek pivot rotasi. Teks HUD turut bereaksi mengikuti mode aktif.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">D</span>
+          <h3>Mouse Translation</h3>
+          <p>Event <code>mousedown</code> membaca posisi <em>client</em>, menyesuaikan koordinat bounding kanvas, dan merubahnya jadi -1 hingga 1 (NDC) untuk teleportasi posisi objek.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">E</span>
+          <h3>Parent & Child</h3>
+          <p>Menghadirkan objek pink kecil yang koordinat matriks lokalnya dikalikan berurutan dengan Model Matriks Object A, sehingga menciptakan pautan fisik anak ke induk.</p>
+        </article>
+        <article class="challenge-card">
+          <span class="challenge-number">F</span>
+          <h3>Simple Orbit Composition</h3>
+          <p>Implementasi murni matriks (tanpa simulasi kosinus/sinus mentah) yang mengomposisikan rotasi poros utama dan pergeseran radius, ditambah <em>Texture mapping</em> Frieren.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="page-footer"><span>BUILD 03.01</span><span>WEBGL 2.0 TRANSFORMATION</span><span>GROUP 04</span></footer>
   </main>
-
-  <script
-    type="module"
-    src="./main.js">
-  </script>
-
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
