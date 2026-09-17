@@ -1,4 +1,3 @@
-// main.js
 import {
   Mat3
 } from "./matrix3.js";
@@ -516,12 +515,11 @@ function loadTexture(gl, url) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  // Put a single blue pixel in the texture so we can render immediately
   const pixel = new Uint8Array([0, 0, 255, 255]);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
 
   const image = new Image();
-  image.crossOrigin = "anonymous"; // Prevents CORS security errors
+  image.crossOrigin = "anonymous";
   image.src = url;
   
   image.onload = () => {
@@ -533,7 +531,6 @@ function loadTexture(gl, url) {
   return texture;
 }
 
-// Start loading the Frieren image immediately!
 const frierenTexture = loadTexture(
   gl, 
   "./FrierenCry.png"
@@ -598,13 +595,9 @@ let useAlternativeOrder = false; // Toggle untuk Challenge C
 // 11. Object B dan Object C — animasi otomatis
 // =========================================================
 
-const colorB =
-  new Float32Array([
-    1.00,
-    0.55,
-    0.10,
-    1.00
-  ]);
+const colorB = new Float32Array([
+    1.00, 0.55, 0.10, 1.00
+]);
 
 const colorC = new Float32Array([
   0.20, 1.00, 0.40, 1.00 
@@ -810,23 +803,18 @@ function updateNonUniformScale(
 }
 
 function clampObjectA() {
-  // 1. Batasi skala terlebih dahulu agar perhitungannya akurat
   objectA.scaleX = Math.max(0.2, Math.min(2.5, objectA.scaleX));
   objectA.scaleY = Math.max(0.2, Math.min(2.5, objectA.scaleY));
 
-  // 2. Hitung jarak ukuran dari titik origin (0,0) ke ujung-ujung geometri
-  // Berdasarkan 'vertices' Anda: max X = 0.18, max Y atas = 0.22, min Y bawah = 0.15
   const paddingX = 0.18 * objectA.scaleX;
   const paddingTop = 0.22 * objectA.scaleY;
   const paddingBottom = 0.15 * objectA.scaleY;
 
-  // 3. Tentukan batas ruang WebGL (-1.0 sampai 1.0) dikurangi ukuran objek
   const minX = -1.0 + paddingX;
   const maxX =  1.0 - paddingX;
   const minY = -1.0 + paddingBottom;
   const maxY =  1.0 - paddingTop;
 
-  // 4. Terapkan batasan posisi yang sudah dinamis
   objectA.x = Math.max(minX, Math.min(maxX, objectA.x));
   objectA.y = Math.max(minY, Math.min(maxY, objectA.y));
 }
@@ -887,7 +875,7 @@ function drawObject(
   useVertexColor = false,
   useTexture = false,
   texture = null,
-  vao = triangleVAO, // NEW: Defaults to the triangle shape
+  vao = triangleVAO,
   vertexCount = 3
 ) {  
   gl.bindVertexArray(
@@ -911,7 +899,7 @@ function drawObject(
   if (useTexture && texture) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1i(textureLocation, 0); // Bind to texture unit 0
+    gl.uniform1i(textureLocation, 0);
   }
 
   gl.drawArrays(
@@ -1021,18 +1009,3 @@ function render(
 requestAnimationFrame(
   render
 );
-
-// =========================================================
-// 18. Catatan untuk Eksperimen Wajib #4 (Transform Order)
-// =========================================================
-//
-// Untuk membandingkan urutan transform secara langsung, panggil
-// kedua fungsi berikut dengan parameter transform yang sama, lalu
-// bandingkan hasil matrix / posisi visualnya:
-//
-   const matrixCaseA = createTRSMatrix(objectA);  // Scale -> Rotate -> Translate
-//   const matrixCaseB = createRTMatrix(objectA);   // Translate -> Rotate (tanpa scale)
-//
-// Coba set objectA.x = 0.4, objectA.rotation = 90, lalu bandingkan
-// posisi triangle pada kedua matrix tersebut untuk melihat efek
-// "orbit" ketika rotate diterapkan setelah translate.
