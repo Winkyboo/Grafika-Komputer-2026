@@ -30,6 +30,9 @@ gl.viewport(
   canvas.height
 );
 
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 // =========================================================
 // 2. Shader Sources
 // =========================================================
@@ -38,8 +41,10 @@ const vertexShaderSource = `#version 300 es
 
 in vec2 a_position;
 in vec4 a_color;
+in vec2 a_texcoord;
 
 out vec4 v_color;
+out vec2 v_texcoord;
 
 uniform mat3 u_matrix;
 
@@ -58,6 +63,7 @@ void main() {
       1.0
     );
     v_color = a_color;
+    v_texcoord = a_texcoord;
 }
 `;
 
@@ -65,15 +71,23 @@ const fragmentShaderSource = `#version 300 es
 
 precision highp float;
 in vec4 v_color;
+in vec2 v_texcoord;
 
 uniform vec4 u_color;
 uniform bool u_use_vertex_color;
+uniform bool u_use_texture; // NEW: Texture toggle switch
+uniform sampler2D u_texture; // NEW: The actual image data
 
 out vec4 outColor;
 
 void main() {
-  // outColor = u_color;
-  outColor = u_use_vertex_color ? v_color : u_color;
+  if (u_use_texture) {
+    // Read the exact pixel color from the Frieren image
+    outColor = texture(u_texture, v_texcoord);
+  } else {
+    // Fallback to our previous color logic
+    outColor = u_use_vertex_color ? v_color : u_color;
+  }
 }
 `;
 
@@ -230,6 +244,9 @@ const colorLocation =
 
 const colorAttribLocation = gl.getAttribLocation(program, "a_color");
 const useVertexColorLocation = gl.getUniformLocation(program, "u_use_vertex_color");
+const texCoordLocation = gl.getAttribLocation(program, "a_texcoord");
+const useTextureLocation = gl.getUniformLocation(program, "u_use_texture");
+const textureLocation = gl.getUniformLocation(program, "u_texture");
 
 // =========================================================
 // 6. VAO + Buffer untuk Triangle
@@ -282,9 +299,65 @@ gl.bufferData(gl.ARRAY_BUFFER, triangleColors, gl.STATIC_DRAW);
 gl.enableVertexAttribArray(colorAttribLocation);
 gl.vertexAttribPointer(colorAttribLocation, 4, gl.FLOAT, false, 0, 0);
 
+const texCoords = new Float32Array([
+  0.0, 1.0, 
+  1.0, 1.0, 
+  0.5, 0.0  
+]);
+
+const texCoordBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+
+gl.enableVertexAttribArray(texCoordLocation);
+gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
 gl.bindVertexArray(
   null
 );
+
+// =========================================================
+// 6.5. VAO + Buffer untuk Quad (Rectangle)
+// =========================================================
+
+const quadVertices = new Float32Array([
+  -0.2, -0.2, // Triangle 1: Bottom-Left
+   0.2, -0.2, // Triangle 1: Bottom-Right
+  -0.2,  0.2, // Triangle 1: Top-Left
+
+  -0.2,  0.2, // Triangle 2: Top-Left
+   0.2, -0.2, // Triangle 2: Bottom-Right
+   0.2,  0.2  // Triangle 2: Top-Right
+]);
+
+const quadVAO = gl.createVertexArray();
+gl.bindVertexArray(quadVAO);
+
+// Position Buffer
+const quadPositionBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, quadVertices, gl.STATIC_DRAW);
+gl.enableVertexAttribArray(positionLocation);
+gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+// Texture Coordinate (UV) Buffer
+const quadTexCoords = new Float32Array([
+  0.0, 1.0, // Bottom-Left
+  1.0, 1.0, // Bottom-Right
+  0.0, 0.0, // Top-Left
+
+  0.0, 0.0, // Top-Left
+  1.0, 1.0, // Bottom-Right
+  1.0, 0.0  // Top-Right
+]);
+
+const quadTexCoordBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadTexCoordBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, quadTexCoords, gl.STATIC_DRAW);
+gl.enableVertexAttribArray(texCoordLocation);
+gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+gl.bindVertexArray(null);
 
 // =========================================================
 // 7. VAO + Buffer untuk Axis (world reference)
@@ -434,6 +507,37 @@ function createRTMatrix(
 
   return matrix;
 }
+
+// =========================================================
+// 9.5. Texture Loader Helper
+// =========================================================
+
+function loadTexture(gl, url) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Put a single blue pixel in the texture so we can render immediately
+  const pixel = new Uint8Array([0, 0, 255, 255]);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+
+  const image = new Image();
+  image.crossOrigin = "anonymous"; // Prevents CORS security errors
+  image.src = url;
+  
+  image.onload = () => {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+  };
+
+  return texture;
+}
+
+// Start loading the Frieren image immediately!
+const frierenTexture = loadTexture(
+  gl, 
+  "./FrierenCry.png"
+);
 
 // =========================================================
 // 10. Object A — dikontrol manual via keyboard
@@ -785,10 +889,14 @@ function updateHUD() {
 function drawObject(
   matrix,
   color,
-  useVertexColor = false
-) {
+  useVertexColor = false,
+  useTexture = false,
+  texture = null,
+  vao = triangleVAO, // NEW: Defaults to the triangle shape
+  vertexCount = 3
+) {  
   gl.bindVertexArray(
-    triangleVAO
+    vao
   );
 
   gl.uniformMatrix3fv(
@@ -803,10 +911,18 @@ function drawObject(
   );
 
   gl.uniform1i(useVertexColorLocation, useVertexColor ? 1 : 0);
+  gl.uniform1i(useTextureLocation, useTexture ? 1 : 0);
+
+  if (useTexture && texture) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(textureLocation, 0); // Bind to texture unit 0
+  }
+
   gl.drawArrays(
     gl.TRIANGLES,
     0,
-    3
+    vertexCount
   );
 }
 
@@ -827,6 +943,7 @@ function drawAxis() {
   );
 
   gl.uniform1i(useVertexColorLocation, 0);
+  gl.uniform1i(useTextureLocation, 0);
   gl.drawArrays(
     gl.LINES,
     0,
@@ -878,9 +995,9 @@ function drawScene(
 
   const matrixC = createObjectCMatrix(seconds);
   
-  drawObject(matrixA, colorA, false); // Uses the solid colorA
-  drawObject(matrixB, colorB, true);  // Overrides colorB, uses RGB gradient
-  drawObject(matrixC, colorC, false);
+  drawObject(matrixA, colorA, false, false, null); // Uses the solid colorA
+  drawObject(matrixB, colorB, true, false, null);  // Overrides colorB, uses RGB gradient
+  drawObject(matrixC, colorC, false, true, frierenTexture, quadVAO, 6);
 }
 
 // =========================================================
