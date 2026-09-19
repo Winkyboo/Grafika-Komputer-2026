@@ -1,3 +1,24 @@
+/*
+Praktikum Grafika Komputer - Pertemuan 3
+Transformasi dan Sistem Koordinat
+
+Nama : Rennard Filbert Tanjaya
+NRP  : 5025241122
+Kelas: B
+
+Nama : Willy Marcelius
+NRP  : 5025241096
+Kelas: B
+
+Challenge:
+- Reset Transform
+- Transform Presets
+- Toggle Order & HUD
+- Mouse Translation
+- Parent & Child
+- Simple Orbit Composition
+*/
+
 import {
   Mat3
 } from "./matrix3.js";
@@ -468,12 +489,10 @@ function createTRSMatrix(
   return matrix;
 }
 
-// Helper pembanding untuk Eksperimen Wajib #4:
-// Translate -> Rotate (tanpa scale).
-// Dipakai untuk menunjukkan bahwa object yang sudah dipindah
-// dari origin akan "mengorbit" saat dirotasi setelah translate,
-// berbeda hasilnya dibanding Scale -> Rotate -> Translate.
-function createRTMatrix(
+// Helper pembanding: Translate -> Rotate -> Scale.
+// Dengan column-vector, transformasi yang ditulis terakhir
+// diterapkan lebih dulu, sehingga komposisinya adalah S * R * T.
+function createSRTMatrix(
   transform
 ) {
   const t =
@@ -489,20 +508,18 @@ function createRTMatrix(
       )
     );
 
+  const s =
+    Mat3.scaling(
+      transform.scaleX,
+      transform.scaleY
+    );
+
   let matrix =
     Mat3.identity();
 
-  matrix =
-    Mat3.multiply(
-      matrix,
-      t
-    );
-
-  matrix =
-    Mat3.multiply(
-      matrix,
-      r
-    );
+  matrix = Mat3.multiply(matrix, s);
+  matrix = Mat3.multiply(matrix, r);
+  matrix = Mat3.multiply(matrix, t);
 
   return matrix;
 }
@@ -948,7 +965,7 @@ function drawScene(seconds) {
 
   // Challenge C: Menentukan urutan matriks Object A berdasarkan Toggle
   const matrixA = useAlternativeOrder 
-    ? createRTMatrix(objectA)  // Translate -> Rotate (menyebabkan orbit jika di luar titik origin)
+    ? createSRTMatrix(objectA)  // Translate -> Rotate -> Scale
     : createTRSMatrix(objectA); // Scale -> Rotate -> Translate (normal)
 
   // Challenge E: Hierarchical Parent-Child Matrix
