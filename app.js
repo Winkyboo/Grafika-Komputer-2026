@@ -48,6 +48,11 @@ function openPraktikumThree() {
     loadPraktikum(practicumButton, './Praktikum Week 3/index.html', 'Praktikum 3');
 }
 
+function openPraktikumFour() {
+    const practicumButton = document.querySelectorAll('.nav-btn')[5];
+    loadPraktikum(practicumButton, './Praktikum Week 4/index.html', 'Praktikum 4');
+}
+
 function setActiveButton(activeBtn) {
     navButtons.forEach((btn) => btn.classList.remove('active'));
     activeBtn.classList.add('active');
