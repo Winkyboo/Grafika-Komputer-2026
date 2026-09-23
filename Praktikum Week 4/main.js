@@ -1,23 +1,7 @@
-// main.js
-// Rotating 3D Cube Camera Playground
-// EF234504 - Grafika Komputer, Pertemuan 4
-
 import { Mat4 } from "./math3d.js";
 
 // ---------------------------------------------------------------
-// 1. WebGL2 Context
-// ---------------------------------------------------------------
-const canvas = document.getElementById("glCanvas");
-const gl = canvas.getContext("webgl2");
-
-if (!gl) {
-  throw new Error("WebGL2 tidak tersedia.");
-}
-
-gl.viewport(0, 0, canvas.width, canvas.height);
-
-// ---------------------------------------------------------------
-// 2. Cube Geometry (36 vertex, tanpa index buffer)
+// 1. Cube Geometry (36 vertex, tanpa index buffer)
 // ---------------------------------------------------------------
 const cubePositions = new Float32Array([
   // Front
@@ -92,6 +76,7 @@ const cubeColors = new Float32Array([
 
 // A second and third cube, offset in depth, used for Challenge E
 // (Multiple Cube Depth Test) so the depth-test toggle has more to show.
+// These are only drawn on the main canvas, not in the split-view panes.
 const extraCubes = [
   { position: [-1.6, 0.0, -1.5], rotationSpeedX: 15, rotationSpeedY: -30 },
   { position: [1.6, 0.0, 1.2], rotationSpeedX: -20, rotationSpeedY: 25 }
@@ -99,7 +84,7 @@ const extraCubes = [
 const extraCubeState = extraCubes.map(() => ({ rotationX: 0, rotationY: 0 }));
 
 // ---------------------------------------------------------------
-// 3. Shaders
+// 2. Shaders
 // ---------------------------------------------------------------
 const vertexShaderSource = `#version 300 es
 
@@ -160,40 +145,103 @@ function createProgram(gl, vertexShader, fragmentShader) {
   return program;
 }
 
-const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-const program = createProgram(gl, vertexShader, fragmentShader);
+// ---------------------------------------------------------------
+// 3. Reusable "scene" factory
+//
+// Each <canvas> needs its own WebGL2 context, program, buffers, and
+// VAO — GL resources are never shared across contexts. This factory
+// sets all of that up so the main canvas and the two Challenge D
+// split-view canvases can each get their own scene from one place,
+// instead of duplicating setup code three times.
+// ---------------------------------------------------------------
+function createScene(canvas) {
+  const gl = canvas.getContext("webgl2");
+
+  if (!gl) {
+    throw new Error("WebGL2 tidak tersedia.");
+  }
+
+  const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+  const program = createProgram(gl, vertexShader, fragmentShader);
+
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
+
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, cubeColors, gl.STATIC_DRAW);
+
+  const positionLocation = gl.getAttribLocation(program, "a_position");
+  const colorLocation = gl.getAttribLocation(program, "a_color");
+
+  const modelLocation = gl.getUniformLocation(program, "u_model");
+  const viewLocation = gl.getUniformLocation(program, "u_view");
+  const projectionLocation = gl.getUniformLocation(program, "u_projection");
+
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.enableVertexAttribArray(positionLocation);
+  gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.enableVertexAttribArray(colorLocation);
+  gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+  gl.bindVertexArray(null);
+
+  return {
+    canvas,
+    gl,
+    program,
+    vao,
+    modelLocation,
+    viewLocation,
+    projectionLocation
+  };
+}
+
+function drawCubeIn(scene, model, view, projection) {
+  const { gl } = scene;
+  gl.useProgram(scene.program);
+  gl.bindVertexArray(scene.vao);
+
+  gl.uniformMatrix4fv(scene.modelLocation, false, model);
+  gl.uniformMatrix4fv(scene.viewLocation, false, view);
+  gl.uniformMatrix4fv(scene.projectionLocation, false, projection);
+  gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+  gl.bindVertexArray(null);
+}
+
+function clearScene(scene, depthEnabledForScene) {
+  const { gl, canvas } = scene;
+
+  if (depthEnabledForScene) {
+    gl.enable(gl.DEPTH_TEST);
+  } else {
+    gl.disable(gl.DEPTH_TEST);
+  }
+
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clearColor(0.03, 0.05, 0.1, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
 
 // ---------------------------------------------------------------
-// 4. Buffers & Attributes
+// 4. Scenes: main canvas + Challenge D split-view canvases
 // ---------------------------------------------------------------
-const positionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
+const mainCanvas = document.getElementById("glCanvas");
+const mainScene = createScene(mainCanvas);
 
-const colorBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, cubeColors, gl.STATIC_DRAW);
-
-const positionLocation = gl.getAttribLocation(program, "a_position");
-const colorLocation = gl.getAttribLocation(program, "a_color");
-
-const modelLocation = gl.getUniformLocation(program, "u_model");
-const viewLocation = gl.getUniformLocation(program, "u_view");
-const projectionLocation = gl.getUniformLocation(program, "u_projection");
-
-const vao = gl.createVertexArray();
-gl.bindVertexArray(vao);
-
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.enableVertexAttribArray(positionLocation);
-gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-gl.enableVertexAttribArray(colorLocation);
-gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
-
-gl.bindVertexArray(null);
+const splitSection = document.getElementById("splitSection");
+const leftCanvas = document.getElementById("glCanvasLeft");
+const rightCanvas = document.getElementById("glCanvasRight");
+const leftScene = createScene(leftCanvas);
+const rightScene = createScene(rightCanvas);
 
 // ---------------------------------------------------------------
 // 5. State
@@ -237,6 +285,9 @@ const orbitState = {
   speed: 0.6 // radians per second
 };
 
+// Challenge D - Projection Comparison Split Mode
+let splitModeEnabled = false;
+
 // ---------------------------------------------------------------
 // 6. Model / Projection builders
 // ---------------------------------------------------------------
@@ -253,18 +304,18 @@ function createModelMatrix(rotationX, rotationY, translation = [0, 0, 0]) {
   return model;
 }
 
-function createProjectionMatrix() {
+function perspectiveFor(canvas) {
   const aspect = canvas.width / canvas.height;
+  return Mat4.perspective(
+    degToRad(projectionState.fov),
+    aspect,
+    projectionState.near,
+    projectionState.far
+  );
+}
 
-  if (projectionState.mode === "perspective") {
-    return Mat4.perspective(
-      degToRad(projectionState.fov),
-      aspect,
-      projectionState.near,
-      projectionState.far
-    );
-  }
-
+function orthographicFor(canvas) {
+  const aspect = canvas.width / canvas.height;
   const size = 2.0;
   return Mat4.orthographic(
     -size * aspect,
@@ -276,10 +327,18 @@ function createProjectionMatrix() {
   );
 }
 
+function createProjectionMatrix() {
+  return projectionState.mode === "perspective"
+    ? perspectiveFor(mainCanvas)
+    : orthographicFor(mainCanvas);
+}
+
 // ---------------------------------------------------------------
 // 7. Input handling
 // ---------------------------------------------------------------
 const keys = {};
+
+const fovPresets = { "1": 35, "2": 60, "3": 90 };
 
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
@@ -318,6 +377,17 @@ window.addEventListener("keydown", (event) => {
   if (key === "o" && !event.repeat) {
     orbitState.enabled = !orbitState.enabled;
   }
+
+  // Challenge D: Split projection view toggle (event-based)
+  if (key === "v" && !event.repeat) {
+    splitModeEnabled = !splitModeEnabled;
+    splitSection.classList.toggle("hidden", !splitModeEnabled);
+  }
+
+  // Challenge F: FOV presets (event-based)
+  if (fovPresets[event.key] && !event.repeat) {
+    projectionState.fov = fovPresets[event.key];
+  }
 });
 
 window.addEventListener("keyup", (event) => {
@@ -349,6 +419,9 @@ function resetScene() {
   depthEnabled = true;
   orbitState.enabled = false;
   orbitState.angle = 0;
+
+  splitModeEnabled = false;
+  splitSection.classList.add("hidden");
 }
 
 // ---------------------------------------------------------------
@@ -412,6 +485,7 @@ const fovInfo = document.getElementById("fovInfo");
 const clipInfo = document.getElementById("clipInfo");
 const depthInfo = document.getElementById("depthInfo");
 const orbitInfo = document.getElementById("orbitInfo");
+const splitInfo = document.getElementById("splitInfo");
 
 function fmt(v) {
   return v.toFixed(2);
@@ -430,20 +504,11 @@ function updateHUD() {
   clipInfo.textContent = `${projectionState.near} / ${projectionState.far}`;
   depthInfo.textContent = depthEnabled ? "ON" : "OFF";
   orbitInfo.textContent = orbitState.enabled ? "ON" : "OFF";
+  splitInfo.textContent = splitModeEnabled ? "ON" : "OFF";
 }
 
 // ---------------------------------------------------------------
-// 10. Draw
-// ---------------------------------------------------------------
-function drawCube(model, view, projection) {
-  gl.uniformMatrix4fv(modelLocation, false, model);
-  gl.uniformMatrix4fv(viewLocation, false, view);
-  gl.uniformMatrix4fv(projectionLocation, false, projection);
-  gl.drawArrays(gl.TRIANGLES, 0, 36);
-}
-
-// ---------------------------------------------------------------
-// 11. Render loop
+// 10. Render loop
 // ---------------------------------------------------------------
 let lastTime = 0;
 
@@ -456,35 +521,30 @@ function render(time) {
   updateCamera(dt);
   updateFOV(dt);
 
-  if (depthEnabled) {
-    gl.enable(gl.DEPTH_TEST);
-  } else {
-    gl.disable(gl.DEPTH_TEST);
-  }
-
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.clearColor(0.03, 0.05, 0.1, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  gl.useProgram(program);
-  gl.bindVertexArray(vao);
-
   const view = Mat4.lookAt(camera.position, camera.target, camera.up);
-  const projection = createProjectionMatrix();
-
-  // Main cube (Milestones 1-9)
   const model = createModelMatrix(cube.rotationX, cube.rotationY);
-  drawCube(model, view, projection);
+
+  // --- Main canvas ---
+  clearScene(mainScene, depthEnabled);
+  const mainProjection = createProjectionMatrix();
+  drawCubeIn(mainScene, model, view, mainProjection);
 
   // Challenge E - Multiple Cube Depth Test: two extra cubes at
   // different depths, spinning at their own rate.
   extraCubes.forEach((c, i) => {
     const state = extraCubeState[i];
     const extraModel = createModelMatrix(state.rotationX, state.rotationY, c.position);
-    drawCube(extraModel, view, projection);
+    drawCubeIn(mainScene, extraModel, view, mainProjection);
   });
 
-  gl.bindVertexArray(null);
+  // --- Challenge D: split-view canvases, same model + camera state ---
+  if (splitModeEnabled) {
+    clearScene(leftScene, depthEnabled);
+    drawCubeIn(leftScene, model, view, perspectiveFor(leftCanvas));
+
+    clearScene(rightScene, depthEnabled);
+    drawCubeIn(rightScene, model, view, orthographicFor(rightCanvas));
+  }
 
   updateHUD();
   requestAnimationFrame(render);
