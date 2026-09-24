@@ -243,6 +243,24 @@ const rightCanvas = document.getElementById("glCanvasRight");
 const leftScene = createScene(leftCanvas);
 const rightScene = createScene(rightCanvas);
 
+// HTML parameter controls mirror the same scene state used by keyboard input.
+const controls = {
+  fov: document.getElementById("fovSlider"),
+  height: document.getElementById("heightSlider"),
+  targetX: document.getElementById("targetXSlider"),
+  targetY: document.getElementById("targetYSlider"),
+  fovOutput: document.getElementById("fovOutput"),
+  heightOutput: document.getElementById("heightOutput"),
+  targetXOutput: document.getElementById("targetXOutput"),
+  targetYOutput: document.getElementById("targetYOutput"),
+  clip: document.getElementById("clipButton"),
+  projection: document.getElementById("projectionButton"),
+  depth: document.getElementById("depthButton"),
+  orbit: document.getElementById("orbitButton"),
+  split: document.getElementById("splitButton"),
+  reset: document.getElementById("resetButton")
+};
+
 // ---------------------------------------------------------------
 // 5. State
 // ---------------------------------------------------------------
@@ -340,6 +358,16 @@ const keys = {};
 
 const fovPresets = { "1": 35, "2": 60, "3": 90 };
 
+function toggleProjection() {
+  projectionState.mode =
+    projectionState.mode === "perspective" ? "orthographic" : "perspective";
+}
+
+function toggleSplitMode() {
+  splitModeEnabled = !splitModeEnabled;
+  splitSection.classList.toggle("hidden", !splitModeEnabled);
+}
+
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
   keys[key] = true;
@@ -354,8 +382,7 @@ window.addEventListener("keydown", (event) => {
 
   // Event-based: Projection toggle
   if (key === "p" && !event.repeat) {
-    projectionState.mode =
-      projectionState.mode === "perspective" ? "orthographic" : "perspective";
+    toggleProjection();
   }
 
   // Event-based: Near/Far preset
@@ -380,8 +407,7 @@ window.addEventListener("keydown", (event) => {
 
   // Challenge D: Split projection view toggle (event-based)
   if (key === "v" && !event.repeat) {
-    splitModeEnabled = !splitModeEnabled;
-    splitSection.classList.toggle("hidden", !splitModeEnabled);
+    toggleSplitMode();
   }
 
   // Challenge F: FOV presets (event-based)
@@ -399,6 +425,22 @@ function nextClipPreset() {
   const preset = clipPresets[clipPresetIndex];
   projectionState.near = preset.near;
   projectionState.far = preset.far;
+}
+
+function syncControls() {
+  controls.fov.value = projectionState.fov;
+  controls.height.value = camera.position[1];
+  controls.targetX.value = camera.target[0];
+  controls.targetY.value = camera.target[1];
+  controls.fovOutput.textContent = `${projectionState.fov.toFixed(0)}°`;
+  controls.heightOutput.textContent = camera.position[1].toFixed(2);
+  controls.targetXOutput.textContent = camera.target[0].toFixed(2);
+  controls.targetYOutput.textContent = camera.target[1].toFixed(2);
+  controls.projection.textContent = `Projection: ${projectionState.mode}`;
+  controls.depth.textContent = `Depth test: ${depthEnabled ? "ON" : "OFF"}`;
+  controls.orbit.textContent = `Orbit: ${orbitState.enabled ? "ON" : "OFF"}`;
+  controls.split.textContent = `Split view: ${splitModeEnabled ? "ON" : "OFF"}`;
+  controls.clip.textContent = `Near / far: ${projectionState.near} / ${projectionState.far}`;
 }
 
 function resetScene() {
@@ -422,7 +464,32 @@ function resetScene() {
 
   splitModeEnabled = false;
   splitSection.classList.add("hidden");
+  syncControls();
 }
+
+controls.fov.addEventListener("input", () => {
+  projectionState.fov = Number(controls.fov.value);
+});
+controls.height.addEventListener("input", () => {
+  camera.position[1] = Number(controls.height.value);
+});
+controls.targetX.addEventListener("input", () => {
+  camera.target[0] = Number(controls.targetX.value);
+});
+controls.targetY.addEventListener("input", () => {
+  camera.target[1] = Number(controls.targetY.value);
+});
+document.querySelectorAll("[data-fov]").forEach((button) => {
+  button.addEventListener("click", () => {
+    projectionState.fov = Number(button.dataset.fov);
+  });
+});
+controls.clip.addEventListener("click", nextClipPreset);
+controls.projection.addEventListener("click", toggleProjection);
+controls.depth.addEventListener("click", () => { depthEnabled = !depthEnabled; });
+controls.orbit.addEventListener("click", () => { orbitState.enabled = !orbitState.enabled; });
+controls.split.addEventListener("click", toggleSplitMode);
+controls.reset.addEventListener("click", resetScene);
 
 // ---------------------------------------------------------------
 // 8. Per-frame updates
@@ -505,6 +572,7 @@ function updateHUD() {
   depthInfo.textContent = depthEnabled ? "ON" : "OFF";
   orbitInfo.textContent = orbitState.enabled ? "ON" : "OFF";
   splitInfo.textContent = splitModeEnabled ? "ON" : "OFF";
+  syncControls();
 }
 
 // ---------------------------------------------------------------

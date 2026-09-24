@@ -1,66 +1,133 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rotating 3D Cube Camera Playground</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WebGL 3D camera and projection playground - Praktikum Grafika Komputer Week 4.">
+  <title>Praktikum 4 | 3D Camera Playground</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
-
-  <main class="app">
-
-    <header>
-      <h1>Rotating 3D Cube Camera Playground</h1>
-      <p>WebGL2 — Camera, Projection &amp; 3D · Pertemuan 4</p>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 04</p>
+        <h1>Output Praktikum 4 <span>— 3D Camera Playground</span></h1>
+        <p class="subtitle">Eksperimen kamera, proyeksi, depth buffer, dan object 3D dengan WebGL 2.0.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 4</span>
+        <span class="status"><i></i> WebGL 2 aktif</span>
+        <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+      </div>
     </header>
 
-    <canvas id="glCanvas" width="960" height="600"></canvas>
+    <div class="content-grid">
+      <section class="playground-panel panel">
+        <div class="panel-heading">
+          <div><p class="section-kicker">MAIN QUEST</p><h2>3D Scene Playground</h2></div>
+          <span class="canvas-size">960 × 600 PX</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="glCanvas" width="960" height="600">Browser Anda belum mendukung WebGL2.</canvas>
+          <span class="canvas-label">LIVE RENDER</span>
+        </div>
 
-    <section id="hud">
-      <div>Projection: <span id="projectionInfo"></span></div>
-      <div>Camera: <span id="cameraInfo"></span></div>
-      <div>Target: <span id="targetInfo"></span></div>
-      <div>FOV: <span id="fovInfo"></span></div>
-      <div>Near/Far: <span id="clipInfo"></span></div>
-      <div>Depth Test: <span id="depthInfo"></span></div>
-      <div>Orbit Camera: <span id="orbitInfo"></span></div>
-      <div>Split Mode: <span id="splitInfo"></span></div>
-    </section>
+        <section id="hud" class="hud" aria-label="Scene information">
+          <div><span>Projection</span><strong id="projectionInfo">—</strong></div>
+          <div><span>Camera</span><strong id="cameraInfo">—</strong></div>
+          <div><span>Target</span><strong id="targetInfo">—</strong></div>
+          <div><span>FOV</span><strong id="fovInfo">—</strong></div>
+          <div><span>Near / Far</span><strong id="clipInfo">—</strong></div>
+          <div><span>Depth test</span><strong id="depthInfo">—</strong></div>
+          <div><span>Orbit camera</span><strong id="orbitInfo">—</strong></div>
+          <div><span>Split mode</span><strong id="splitInfo">—</strong></div>
+        </section>
 
-    <section class="controls">
-      <strong>Kontrol:</strong>
-      <span>Arrow = Camera X/Y</span>
-      <span>W/S = Camera Z</span>
-      <span>P = Projection Toggle</span>
-      <span>[ / ] = FOV</span>
-      <span>1/2/3 = FOV Preset 35°/60°/90° (Challenge F)</span>
-      <span>N = Near/Far Preset</span>
-      <span>D = Depth Test</span>
-      <span>R = Reset</span>
-      <span>O = Orbit Camera (Challenge A)</span>
-      <span>PageUp/PageDown = Camera Height (Challenge B)</span>
-      <span>I/K/J/L = Target X/Y (Challenge C)</span>
-      <span>V = Split Projection View (Challenge D)</span>
-    </section>
+        <div class="hint-row">
+          <span><b>Arrow / W S</b> pindahkan kamera</span>
+          <span><b>[ / ]</b> ubah FOV</span>
+          <span><b>P</b> projection</span>
+          <span><b>D</b> depth test</span>
+          <span><b>R</b> reset scene</span>
+        </div>
+      </section>
 
-    <section id="splitSection" class="split hidden">
-      <div class="split-pane">
-        <p class="split-label">Perspective</p>
-        <canvas id="glCanvasLeft" width="460" height="300"></canvas>
+      <aside class="report-column">
+        <section class="panel control-panel">
+          <div class="panel-heading compact">
+            <div><p class="section-kicker">PARAMETER CONTROL</p><h2>Camera Controls</h2></div>
+            <span class="chapter-mark">01</span>
+          </div>
+          <div class="parameter-control">
+            <label for="fovSlider">Field of view <output id="fovOutput">60°</output><input id="fovSlider" type="range" min="30" max="100" value="60" step="1"></label>
+            <label for="heightSlider">Camera height <output id="heightOutput">1.50</output><input id="heightSlider" type="range" min="-3" max="5" value="1.5" step="0.1"></label>
+            <label for="targetXSlider">Target X <output id="targetXOutput">0.00</output><input id="targetXSlider" type="range" min="-3" max="3" value="0" step="0.1"></label>
+            <label for="targetYSlider">Target Y <output id="targetYOutput">0.00</output><input id="targetYSlider" type="range" min="-3" max="3" value="0" step="0.1"></label>
+            <p class="control-label">FOV preset</p><div class="button-grid"><button data-fov="35" type="button">35°</button><button data-fov="60" type="button">60°</button><button data-fov="90" type="button">90°</button></div>
+            <button id="clipButton" class="button-secondary" type="button">Near / far preset (N)</button>
+            <div class="button-grid two"><button id="projectionButton" class="button-primary" type="button">Projection (P)</button><button id="depthButton" class="button-secondary" type="button">Depth test (D)</button></div>
+            <div class="button-grid two"><button id="orbitButton" class="button-secondary" type="button">Orbit (O)</button><button id="splitButton" class="button-secondary" type="button">Split view (V)</button></div>
+            <button id="resetButton" class="button-secondary" type="button">Reset scene (R)</button>
+          </div>
+          <div class="control-list">
+            <div><kbd>← ↑ ↓ →</kbd><span>Camera X / Y</span></div><div><kbd>W / S</kbd><span>Camera Z maju / mundur</span></div><div><kbd>[ / ]</kbd><span>FOV kontinu</span></div><div><kbd>PageUp / Down</kbd><span>Camera height kontinu</span></div><div><kbd>I K J L</kbd><span>Target look-at kontinu</span></div>
+          </div>
+          <div class="note"><strong>State-based input</strong><br>Posisi kamera, target, dan FOV diperbarui setiap frame saat tombol ditahan. Toggle dan preset menggunakan event-based input.</div>
+        </section>
+      </aside>
+    </div>
+
+    <section id="splitSection" class="split panel hidden" aria-label="Projection comparison">
+      <div class="split-heading"><div><p class="section-kicker">CHALLENGE D</p><h2>Projection Comparison</h2></div><span class="status-live"><i></i> ACTIVE</span></div>
+      <div class="split-grid">
+        <div class="split-pane"><p class="split-label">Perspective</p><canvas id="glCanvasLeft" width="460" height="300"></canvas></div>
+        <div class="split-pane"><p class="split-label">Orthographic</p><canvas id="glCanvasRight" width="460" height="300"></canvas></div>
       </div>
-      <div class="split-pane">
-        <p class="split-label">Orthographic</p>
-        <canvas id="glCanvasRight" width="460" height="300"></canvas>
-      </div>
     </section>
 
+    <section class="report-panel panel">
+      <div class="technical-heading"><div><p class="section-kicker">LAPORAN PRAKTIKUM</p><h2>Ringkasan Implementasi</h2></div><span class="chapter-mark">02</span></div>
+      <div class="report-columns"><div class="report-intro"><p class="intro-label">HASIL PRAKTIKUM</p><p>Scene utama merender tiga cube dengan 36 vertex per cube dan warna berbeda untuk setiap face. Cube diproses oleh model, view, serta projection matrix 4×4 sebelum dirasterisasi oleh WebGL.</p></div><table class="data-table"><tbody><tr><td>Rendering</td><td>WebGL 2.0 + GLSL ES 3.00</td></tr><tr><td>Camera</td><td>position, target, up, <code>lookAt()</code></td></tr><tr><td>Projection</td><td>Perspective / orthographic</td></tr><tr><td>Visibility</td><td>Depth buffer + depth test</td></tr><tr><td>Animation</td><td>Delta time + requestAnimationFrame()</td></tr></tbody></table></div>
+    </section>
+
+    <section class="technical-report panel">
+      <div class="technical-heading"><div><p class="section-kicker">ENGINEERING README</p><h2>How This 3D Scene Works</h2></div><span class="chapter-mark">03</span></div>
+      <div class="pipeline-grid">
+        <div><strong>Model</strong><p>Rotasi dan translasi menyusun posisi setiap cube di world space.</p></div>
+        <div><strong>View</strong><p><code>lookAt()</code> mengubah world space berdasarkan kamera dan target.</p></div>
+        <div><strong>Projection</strong><p>Perspective atau orthographic memetakan view space ke clip space.</p></div>
+        <div><strong>Depth</strong><p>Depth buffer menentukan permukaan cube yang terlihat paling dekat.</p></div>
+      </div>
+      <div class="flow-line"><span>VERTEX DATA</span><b>→</b><span>MODEL MATRIX</span><b>→</b><span>VIEW MATRIX</span><b>→</b><span>PROJECTION MATRIX</span><b>→</b><span>FRAGMENT COLOR</span></div>
+    </section>
+
+    <section class="core-tasks-panel panel">
+      <div class="technical-heading"><div><p class="section-kicker">TUGAS INTI</p><h2>Checklist Konsep Utama</h2></div><span class="chapter-mark">04</span></div>
+      <div class="core-task-grid"><article><strong>01 · Near &amp; Far Plane</strong><p>Tiga preset clipping plane digunakan oleh perspective dan orthographic projection.</p></article><article><strong>02 · Depth Buffer</strong><p>Color dan depth buffer dibersihkan setiap frame sebelum object dirender kembali.</p></article><article><strong>03 · Depth Test</strong><p><code>gl.enable(gl.DEPTH_TEST)</code> dapat ditoggle untuk membandingkan visibility object.</p></article><article><strong>04 · Automatic Rotation</strong><p>Cube utama dan cube tambahan berputar menggunakan delta time.</p></article><article><strong>05 · State-based Camera</strong><p>Keyboard mengubah state; posisi kamera, target, serta FOV diperbarui per frame.</p></article><article><strong>06 · Event Toggle</strong><p>Projection, depth, orbit, split view, preset, dan reset memakai aksi sekali tekan.</p></article><article><strong>07 · HUD Camera</strong><p>HUD menampilkan camera, target, projection, FOV, clipping, depth, orbit, dan split mode.</p></article><article><strong>08 · Aspect Ratio</strong><p>Projection dibangun menggunakan perbandingan lebar dan tinggi canvas aktif.</p></article></div>
+    </section>
+
+    <section class="checklist-panel panel">
+      <div class="technical-heading"><div><p class="section-kicker">PENGUJIAN</p><h2>Checklist Sebelum Dikumpulkan</h2></div><span class="chapter-mark">05</span></div>
+      <ul class="checklist"><li><span>✓</span>Cube 3D 36 vertex dengan warna per face muncul.</li><li><span>✓</span>Model, view, dan projection matrix 4×4 bekerja.</li><li><span>✓</span>Near/far clipping dan FOV dapat diubah.</li><li><span>✓</span>Depth buffer dibersihkan dan depth test dapat ditoggle.</li><li><span>✓</span>Camera control state-based, automatic rotation, dan HUD aktif.</li><li><span>✓</span>Semua Challenge A–F dapat diuji melalui keyboard atau tombol UI.</li></ul>
+    </section>
+
+    <section class="challenge-report panel">
+      <div class="technical-heading"><div><p class="section-kicker">CHALLENGE REPORT</p><h2>Fitur yang Diimplementasikan</h2></div><span class="chapter-mark">06</span></div>
+      <div class="challenge-grid">
+        <article class="challenge-card"><span class="challenge-number">A</span><h3>Orbit Camera</h3><p>Kamera berputar mengelilingi scene pada radius tetap menggunakan waktu delta.</p></article>
+        <article class="challenge-card"><span class="challenge-number">B</span><h3>Camera Height</h3><p>PageUp dan PageDown mengubah posisi vertikal kamera secara kontinu.</p></article>
+        <article class="challenge-card"><span class="challenge-number">C</span><h3>Target Control</h3><p>Tombol I, K, J, dan L memindahkan focus point untuk fungsi lookAt.</p></article>
+        <article class="challenge-card"><span class="challenge-number">D</span><h3>Split Projection</h3><p>Perspective dan orthographic dirender bersama untuk dibandingkan langsung.</p></article>
+        <article class="challenge-card"><span class="challenge-number">E</span><h3>Depth Test</h3><p>Tiga cube pada kedalaman berbeda memperlihatkan fungsi depth buffer.</p></article>
+        <article class="challenge-card"><span class="challenge-number">F</span><h3>FOV Presets</h3><p>Preset 35°, 60°, dan 90° memperlihatkan dampak field of view pada scene.</p></article>
+      </div>
+    </section>
+    <footer class="page-footer"><span>BUILD 04.01</span><span>WEBGL 3D CAMERA &amp; PROJECTION</span><span>GROUP 04</span></footer>
   </main>
-
   <script type="module" src="./main.js"></script>
-
 </body>
-
 </html>
