@@ -54,7 +54,7 @@ function openPraktikumFour() {
 }
 
 function openPraktikumFive() {
-    const practicumButton = document.querySelectorAll('.nav-btn')[5];
+    const practicumButton = document.querySelectorAll('.nav-btn')[6];
     loadPraktikum(practicumButton, './Praktikum Week 5/index.html', 'Praktikum 5');
 }
 
