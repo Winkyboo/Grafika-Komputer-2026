@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WebGL 2 lighting, shading, normal, dan texture playground untuk Praktikum Grafika Komputer Pertemuan 5.">
+  <meta name="theme-color" content="#111629">
+  <title>Praktikum 5 | Lighting, Shading &amp; Texture</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 05</p>
+        <h1>Output Praktikum 5 <span>— Lighting, Shading &amp; Texture</span></h1>
+        <p class="subtitle">Eksperimen normal, pencahayaan Phong, texture sampling, dan filtering menggunakan WebGL 2.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 4</span>
+        <span class="status"><i></i> Semua syarat & Challenge selesai</span>
+        <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <section class="panel stage">
+        <div class="panel-heading">
+          <div><p class="section-kicker">MAIN QUEST</p><h2>Textured and Lit Object</h2></div>
+          <span class="canvas-size">960 × 600 PX</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="glCanvas" width="960" height="600" aria-label="Scene WebGL 3D dengan texture dan pencahayaan">Browser Anda belum mendukung WebGL2.</canvas>
+          <span class="canvas-label">LIVE WEBGL 2 RENDER</span>
+        </div>
+        <section id="hud" class="hud" aria-label="Informasi scene">
+          <p><span>Shading</span><strong id="shadingInfo">Smooth</strong></p>
+          <p><span>Filtering</span><strong id="filterInfo">LINEAR</strong></p>
+          <p><span>Wrapping</span><strong id="wrapInfo">REPEAT</strong></p>
+          <p><span>UV scale</span><strong id="uvInfo">1.0×</strong></p>
+          <p><span>Shininess</span><strong id="shininessInfo">32</strong></p>
+          <p><span>Light position</span><strong id="lightInfo">1.8, 1.5, 2.3</strong></p>
+          <p><span>Ambient</span><strong id="ambientInfo">0.18</strong></p>
+        </section>
+        <p class="flow-caption"><b>Position + Normal + UV</b> masuk ke vertex shader, lalu fragment shader menggabungkan sampel texture dengan ambient, diffuse, dan specular lighting.</p>
+
+      </section>
+
+      <aside class="panel controls">
+        <div class="panel-heading compact">
+          <div><p class="section-kicker">PARAMETER CONTROL</p><h2>Scene Controls</h2></div>
+          <span class="chapter-mark">01</span>
+        </div>
+
+        <label for="objectType">Bentuk objek</label>
+        <select id="objectType">
+          <option value="cube">Kubus</option><option value="sphere">Bola</option><option value="torus">Torus</option><option value="torusKnot">Torus Knot</option>
+        </select>
+        <label for="ambientControl">Ambient strength <output id="ambientValue">0.18</output></label>
+        <input id="ambientControl" type="range" min="0" max="1" step="0.01" value="0.18">
+        <label for="shininessControl">Shininess <output id="shininessValue">32</output></label>
+        <input id="shininessControl" type="range" min="4" max="128" step="1" value="32">
+
+        <p class="section-kicker control-kicker">LIGHT POSITION</p>
+        <div class="axis-grid">
+          <label for="lightX">X<output id="lightXValue">1.8</output><input id="lightX" type="range" min="-4" max="4" step="0.1" value="1.8"></label>
+          <label for="lightY">Y<output id="lightYValue">1.5</output><input id="lightY" type="range" min="-4" max="4" step="0.1" value="1.5"></label>
+          <label for="lightZ">Z<output id="lightZValue">2.3</output><input id="lightZ" type="range" min="-4" max="4" step="0.1" value="2.3"></label>
+        </div>
+        <div class="actions">
+          <button id="shadingToggle" type="button">Flat / Smooth (F)</button>
+          <button id="filterToggle" type="button">Texture (T)</button>
+          <button id="lightOrbitToggle" type="button">Light Orbit</button>
+          <button id="cameraOrbitToggle" type="button">Camera Orbit (O)</button>
+        </div>
+        <button id="rotationToggle" class="primary wide" type="button">Stop Object Rotation (P)</button>
+
+        <label for="textureSource">Texture source</label>
+        <select id="textureSource">
+          <option value="checker">Checkerboard</option><option value="stripes">Color stripes</option><option value="gradient">Gradient</option><option value="image">Image Texture (Sample)</option><option value="upload">Choose Local Image…</option>
+        </select>
+        <input id="imageTextureFile" class="hidden" type="file" accept="image/*" aria-label="Choose image texture">
+        <label for="filterSelect">Filtering</label>
+        <select id="filterSelect">
+          <option value="linear">LINEAR</option><option value="nearest">NEAREST</option><option value="linear_mipmap_linear">LINEAR_MIPMAP_LINEAR</option><option value="nearest_mipmap_nearest">NEAREST_MIPMAP_NEAREST</option>
+        </select>
+        <label for="wrapSelect">Wrapping</label>
+        <select id="wrapSelect">
+          <option value="repeat">REPEAT</option><option value="clamp">CLAMP_TO_EDGE</option><option value="mirror">MIRRORED_REPEAT</option>
+        </select>
+
+        <p class="section-kicker control-kicker">LIGHTING COMPONENTS</p>
+        <div class="component-list">
+          <label><input id="ambientToggle" type="checkbox" checked> Ambient</label>
+          <label><input id="diffuseToggle" type="checkbox" checked> Diffuse</label>
+          <label><input id="specularToggle" type="checkbox" checked> Specular</label>
+        </div>
+        <p class="section-kicker control-kicker">NON-UNIFORM SCALE</p>
+        <div class="axis-grid scale-grid">
+          <label for="scaleX">X<input id="scaleX" type="range" min="0.5" max="1.8" step="0.05" value="1"></label>
+          <label for="scaleY">Y<input id="scaleY" type="range" min="0.5" max="1.8" step="0.05" value="1"></label>
+          <label for="scaleZ">Z<input id="scaleZ" type="range" min="0.5" max="1.8" step="0.05" value="1"></label>
+        </div>
+        <button id="resetButton" class="primary wide" type="button">Reset Scene (R)</button>
+
+      </aside>
+    </div>
+
+    <section class="panel keyboard-guide-panel report-panel" aria-label="Panduan keyboard">
+          <div class="panel-heading compact">
+            <div><p class="section-kicker">KEYBOARD GUIDE</p><h2>Kontrol Keyboard</h2></div>
+            <span class="chapter-mark">02</span>
+          </div>
+          <div class="control-list">
+            <div><kbd>← ↑ ↓ →</kbd><span>Posisi light X / Y</span></div>
+            <div><kbd>W / S</kbd><span>Posisi light Z</span></div>
+            <div><kbd>I / J / K / L</kbd><span>Kamera X / Y</span></div>
+            <div><kbd>Q / E</kbd><span>Kamera Z maju / mundur</span></div>
+            <div><kbd>A / Z</kbd><span>Ambient strength</span></div>
+            <div><kbd>F / T</kbd><span>Flat/smooth · texture on/off</span></div>
+            <div><kbd>1 / 2 / 3</kbd><span>Ambient · diffuse · specular</span></div>
+            <div><kbd>N / O / P</kbd><span>Scale · camera orbit · rotation</span></div>
+            <div><kbd>G · [ / ] · − / +</kbd><span>Wrapping · UV scale · shininess</span></div>
+          </div>
+          <div class="help">
+            <strong>State-based &amp; event-based input</strong>
+            Kamera bergerak setiap frame selama I/J/K/L atau Q/E ditahan. Tombol panah dan W/S menggeser light. Toggle shading, texture, orbit, dan komponen lighting mengubah state saat tombol ditekan; nilai ambient juga bisa diatur lewat slider.
+          </div>
+        </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">LAPORAN PRAKTIKUM</p><h2>Ringkasan Implementasi</h2></div>
+        <span class="chapter-mark">03</span>
+      </div>
+      <div class="report-columns">
+        <div class="report-intro"><p class="intro-label">HASIL PRAKTIKUM</p><p>Scene merender objek 3D berputar dengan position, normal, dan UV. Fragment shader mengambil warna texture dan menghitung ambient, diffuse, serta specular berdasarkan point light dan posisi kamera.</p></div>
+        <table class="data-table">
+          <thead><tr><th>Aspek</th><th>Implementasi</th></tr></thead>
+          <tbody>
+            <tr><td>Rendering</td><td>WebGL 2.0 + GLSL ES 3.00</td></tr>
+            <tr><td>Geometry</td><td>Cube, sphere, torus, torus knot</td></tr>
+            <tr><td>Vertex data</td><td>Position, normal, dan UV</td></tr>
+            <tr><td>Surface</td><td>Face normal / smooth vertex normal</td></tr>
+            <tr><td>Lighting</td><td>Ambient + diffuse + Phong specular</td></tr>
+            <tr><td>Texture</td><td>Procedural checkerboard dan image</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel pipeline-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">RENDERING PIPELINE</p><h2>Bagaimana Permukaan Dirender</h2></div>
+        <span class="chapter-mark">04</span>
+      </div>
+      <p class="flow-caption">Data geometri berjalan dari local space menuju fragment. Lighting dihitung per fragment agar normal hasil interpolasi dan texture sampling dapat digunakan bersama.</p>
+      <div class="flow-line"><span>POSITION · NORMAL · UV</span><b>→</b><span>MODEL / VIEW / PROJECTION</span><b>→</b><span>INTERPOLATION</span><b>→</b><span>TEXTURE + LIGHTING</span></div>
+      <div class="pipeline-grid">
+        <div><strong>Position</strong><p>Model, view, dan perspective projection matrix membawa vertex ke clip space.</p></div>
+        <div><strong>Normal</strong><p>Normal matrix inverse-transpose menjaga arah normal, termasuk saat scale tidak seragam.</p></div>
+        <div><strong>UV sampling</strong><p>UV memilih texel pada sampler. Filtering dan wrapping menentukan hasil saat texture dipetakan.</p></div>
+        <div><strong>Fragment lighting</strong><p>Ambient, diffuse, dan specular membentuk warna akhir permukaan.</p></div>
+      </div>
+    </section>
+
+    <section class="panel core-tasks-panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">TUGAS INTI</p><h2>Konsep Utama Pertemuan 5</h2></div>
+        <span class="chapter-mark">05</span>
+      </div>
+      <div class="core-task-grid">
+        <article class="core-task core-cyan"><span class="core-task-number">01</span><h3>Normal &amp; Shading</h3><p>Face normal memberi arah seragam per triangle; smooth vertex normal diinterpolasi agar pencahayaan tampak halus.</p></article>
+        <article class="core-task core-yellow"><span class="core-task-number">02</span><h3>Normal Matrix</h3><p>Normal ditransformasikan dengan inverse-transpose dari bagian linear model matrix, lalu dinormalisasi.</p></article>
+        <article class="core-task core-pink"><span class="core-task-number">03</span><h3>Ambient</h3><p>Cahaya dasar tidak bergantung pada arah light maupun normal dan menjaga bagian gelap tetap terlihat.</p></article>
+        <article class="core-task core-green"><span class="core-task-number">04</span><h3>Diffuse</h3><p>Intensitas memakai max(dot(N, L), 0). Nilainya besar saat normal menghadap ke arah cahaya.</p></article>
+        <article class="core-task core-cyan"><span class="core-task-number">05</span><h3>Specular</h3><p>Highlight Phong memakai reflection direction dan view direction. Shininess mengatur ukuran highlight.</p></article>
+        <article class="core-task core-yellow"><span class="core-task-number">06</span><h3>Texture &amp; UV</h3><p>UV memilih bagian image sebagai base color tanpa menambah jumlah triangle pada permukaan.</p></article>
+        <article class="core-task core-pink"><span class="core-task-number">07</span><h3>Filtering</h3><p>NEAREST memilih texel terdekat; LINEAR menginterpolasi texel di sekitar koordinat sampel.</p></article>
+        <article class="core-task core-green"><span class="core-task-number">08</span><h3>Wrapping</h3><p>REPEAT, CLAMP_TO_EDGE, dan MIRRORED_REPEAT mengatur UV yang berada di luar rentang 0–1.</p></article>
+      </div>
+    </section>
+
+    <section class="panel checklist-panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHECKLIST</p><h2>Checklist Praktikum</h2></div>
+        <span class="chapter-mark">06</span>
+      </div>
+      <ul class="checklist">
+        <li><span>&#x2713;</span><div>Cube, normal, dan normal matrix</div></li>
+        <li><span>&#x2713;</span><div>Flat/smooth shading</div></li>
+        <li><span>&#x2713;</span><div>Ambient, diffuse, specular, dan shininess</div></li>
+        <li><span>&#x2713;</span><div>Texture sampler, UV, filtering, dan wrapping</div></li>
+        <li><span>&#x2713;</span><div>Lighting + texture</div></li>
+        <li><span>&#x2713;</span><div>Animated cube</div></li>
+        <li><span>&#x2713;</span><div>State-based light/camera control</div></li>
+        <li><span>&#x2713;</span><div>Challenge A&#x2013;G</div></li>
+      </ul>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">PENGUJIAN</p><h2>Tabel Test Case</h2></div>
+        <span class="chapter-mark">07</span>
+      </div>
+      <div class="report-intro test-case-status">
+        <p><strong>Status Pengujian: Lulus Uji (15/15).</strong> Terdapat 15 skenario pengujian untuk memeriksa rendering, lighting, texture, kontrol scene, HUD, dan console.</p>
+      </div>
+      <div class="report-columns test-case-columns">
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Pengujian</th><th>Hasil yang Diharapkan</th><th style="width: 50px; text-align: center;">Status</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Load aplikasi</td><td>Cube tampil</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></td></tr>
+              <tr><td>2</td><td>Rotation</td><td>Cube berputar</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>3</td><td>Texture</td><td>Checkerboard terlihat</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>4</td><td>Flat shading</td><td>Per-face lighting tegas</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>5</td><td>Smooth shading</td><td>Lighting lebih halus</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>6</td><td>Arrow/W/S</td><td>Light bergerak</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>7</td><td>Diffuse</td><td>Brightness berubah dengan light</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>8</td><td>Specular</td><td>Highlight terlihat</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Pengujian</th><th>Hasil yang Diharapkan</th><th style="width: 50px; text-align: center;">Status</th></tr></thead>
+            <tbody>
+              <tr><td>9</td><td>Shininess</td><td>Ukuran highlight berubah</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>10</td><td>T</td><td>Filtering berganti</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>11</td><td>G</td><td>Wrapping berganti</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>12</td><td>UV Scale</td><td>Pattern repeat/clamp terlihat</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>13</td><td>Normal Matrix</td><td>Non-uniform scale tetap masuk akal</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>14</td><td>HUD</td><td>State tampil benar</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+              <tr><td>15</td><td>Console</td><td>Tidak ada error normal</td><td style="color: #4cdb99; text-align: center; font-weight: bold;">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel challenge-report report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHALLENGE REPORT</p><h2>Challenge A–F</h2></div>
+        <span class="chapter-mark">08</span>
+      </div>
+      <div class="challenge-grid">
+        <article class="challenge-card"><span class="challenge-number">A</span><h3>Image Texture</h3><p>Sample image lokal dimuat melalui <code>Image</code>; menu juga menerima gambar dari komputer.</p></article>
+        <article class="challenge-card"><span class="challenge-number">B</span><h3>Ambient Control</h3><p>Tombol A/Z mengubah ambient strength, yang nilainya juga tampak di HUD dan slider.</p></article>
+        <article class="challenge-card"><span class="challenge-number">C</span><h3>Camera Control</h3><p>I/J/K/L menggeser kamera X/Y, Q/E mengubah Z. Specular memakai posisi kamera terkini.</p></article>
+        <article class="challenge-card"><span class="challenge-number">D</span><h3>Non-uniform Scale</h3><p>N atau slider sumbu mengubah scale; normal matrix inverse-transpose tetap aktif.</p></article>
+        <article class="challenge-card"><span class="challenge-number">E</span><h3>Light Orbit</h3><p>Tombol Light Orbit beralih antara posisi otomatis mengorbit dan posisi manual dari slider/keyboard.</p></article>
+        <article class="challenge-card"><span class="challenge-number">F</span><h3>Lighting Components</h3><p>Tombol 1/2/3 atau checkbox mengaktifkan ambient, diffuse, dan specular satu per satu.</p></article>
+      </div>
+    </section>
+
+    <footer class="page-footer"><span>EF234504 · GRAFIKA KOMPUTER</span><span>WEBGL LIGHTING &amp; TEXTURE</span><span>GROUP 04</span></footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
