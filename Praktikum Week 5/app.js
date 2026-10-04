@@ -20,10 +20,11 @@ out vec3 v_normal;
 out vec2 v_texCoord;
 
 void main() {
-  v_worldPosition = u_model * vec4(a_position, 1.0).xyz;
+  vec4 world = u_model * vec4(a_position, 1.0);
+  v_worldPosition = world.xyz;
   v_normal = u_normalMatrix * a_normal;
   v_texCoord = a_texCoord * u_uvScale;
-  gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
+  gl_Position = u_projection * u_view * world;
 }`;
 
 const fragmentSource = `#version 300 es
