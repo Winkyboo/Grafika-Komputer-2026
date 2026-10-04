@@ -1,7 +1,7 @@
 # Praktikum Grafika Komputer 5 - Textured and Lit Object
 
 ## Deskripsi Aplikasi
-Aplikasi ini adalah hasil Praktikum Grafika Komputer Pertemuan 4 dari Kelompok 4. Aplikasi ini mendemonstrasikan rendering objek 3D (Cube, Sphere, Torus, dan Torus Knot) menggunakan **WebGL 2.0**. 
+Aplikasi ini adalah hasil Praktikum Grafika Komputer Pertemuan 5 dari Kelompok 4. Aplikasi ini mendemonstrasikan rendering objek 3D (Cube, Sphere, Torus, dan Torus Knot) menggunakan **WebGL 2.0**. 
 
 Fitur utama aplikasi ini mencakup:
 - Implementasi **Phong Lighting** (Ambient, Diffuse, Specular) dengan kontrol penuh.
