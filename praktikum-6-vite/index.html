@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mini 3D Scene dengan Three.js untuk Praktikum Grafika Komputer Pertemuan 6.">
+  <meta name="theme-color" content="#111629">
+  <title>Praktikum 6 | Introduction to Three.js</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 06</p>
+        <h1>Output Praktikum 6 <span>Introduction to Three.js</span></h1>
+        <p class="subtitle">Mini 3D Scene: Scene, PerspectiveCamera, material, light, shadow, dan animation loop di atas WebGL.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 4</span>
+        <span class="status"><i></i> <span id="threeVersion">Three.js</span> aktif</span>
+        <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <section class="panel stage">
+        <div class="panel-heading">
+          <div><p class="section-kicker">MAIN QUEST</p><h2>Mini 3D Scene</h2></div>
+          <span class="canvas-size" id="canvasSize">960 × 600 PX</span>
+        </div>
+        <div class="canvas-wrap" id="canvasWrap">
+          <span class="canvas-label">LIVE THREE.JS RENDER</span>
+        </div>
+        <section class="hud" aria-label="Informasi scene">
+          <p><span>Kamera</span><strong id="hudCamera">Perspective</strong></p>
+          <p><span>Posisi kamera</span><strong id="hudPosition">4.0, 3.0, 6.0</strong></p>
+          <p><span>FOV</span><strong id="hudFov">60°</strong></p>
+          <p><span>Objects</span><strong id="hudObjects">0</strong></p>
+          <p><span>Triangles</span><strong id="hudTriangles">0</strong></p>
+          <p><span>FPS</span><strong id="hudFps">0</strong></p>
+          <p><span>Material kubus</span><strong id="hudMaterial">Lambert</strong></p>
+          <p><span>Vertex sphere</span><strong id="hudVertex">0</strong></p>
+          <p><span>Animasi</span><strong id="hudAnimation">Jalan</strong></p>
+          <p><span>Light orbit</span><strong id="hudLight">Diam</strong></p>
+          <p><span>Shadow map</span><strong id="hudShadow">1024</strong></p>
+          <p><span>Gallery</span><strong id="hudGallery">Tersembunyi</strong></p>
+        </section>
+        <p class="flow-caption"><b>Scene + Camera + Light</b> dikirim ke <b>WebGLRenderer</b>, yang mengelola buffer, shader, dan draw call, lalu menggambar hasilnya ke Canvas.</p>
+      </section>
+
+      <aside class="panel controls">
+        <div class="panel-heading compact">
+          <div><p class="section-kicker">PARAMETER CONTROL</p><h2>Scene Controls</h2></div>
+          <span class="chapter-mark">01</span>
+        </div>
+
+        <p class="section-kicker control-kicker">KAMERA</p>
+        <div class="actions">
+          <button id="cameraButton" type="button">Perspective / Ortho (P)</button>
+          <button id="resetButton" type="button">Reset Tampilan (R)</button>
+        </div>
+        <label for="fovControl">Field of View <output id="fovValue">60°</output></label>
+        <input id="fovControl" type="range" min="35" max="90" step="1" value="60">
+
+        <p class="section-kicker control-kicker">OBJEK</p>
+        <label for="cubeMaterial">Material kubus (M)</label>
+        <select id="cubeMaterial">
+          <option value="0">MeshLambertMaterial</option>
+          <option value="1">MeshBasicMaterial</option>
+          <option value="2">MeshNormalMaterial</option>
+          <option value="3">MeshPhongMaterial</option>
+        </select>
+        <label for="sphereSegments">Segment sphere (width × height)</label>
+        <select id="sphereSegments">
+          <option value="8,6">8 × 6</option>
+          <option value="32,16" selected>32 × 16</option>
+          <option value="64,32">64 × 32</option>
+        </select>
+
+        <p class="section-kicker control-kicker">LIGHT DAN SHADOW</p>
+        <label for="directionalControl">Directional intensity <output id="directionalValue">2.0</output></label>
+        <input id="directionalControl" type="range" min="0" max="4" step="0.1" value="2">
+        <label for="ambientControl">Ambient intensity <output id="ambientValue">0.35</output></label>
+        <input id="ambientControl" type="range" min="0" max="1" step="0.01" value="0.35">
+        <label for="shadowSize">Shadow map size (B)</label>
+        <select id="shadowSize">
+          <option value="512">512 × 512</option>
+          <option value="1024" selected>1024 × 1024</option>
+          <option value="2048">2048 × 2048</option>
+        </select>
+        <div class="component-list" style="margin-top: 10px;">
+          <label><input id="shadowRenderer" type="checkbox" checked> renderer.shadowMap.enabled</label>
+          <label><input id="shadowLight" type="checkbox" checked> light.castShadow</label>
+          <label><input id="shadowCube" type="checkbox" checked> cube.castShadow</label>
+          <label><input id="shadowGround" type="checkbox" checked> ground.receiveShadow</label>
+        </div>
+
+        <p class="section-kicker control-kicker">ANIMASI</p>
+        <button id="pauseButton" class="primary wide" type="button">Jeda Animasi (Space)</button>
+        <div class="actions">
+          <button id="lightButton" type="button">Light Orbit (L)</button>
+          <button id="galleryButton" type="button">Material Gallery (G)</button>
+        </div>
+
+        <div class="help">
+          <strong>Catatan input</strong>
+          Setelah memakai slider atau menu, klik kanvas agar shortcut keyboard aktif kembali. Scroll di atas kanvas dipakai untuk zoom.
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel keyboard-guide-panel report-panel" aria-label="Panduan keyboard">
+      <div class="panel-heading compact">
+        <div><p class="section-kicker">KEYBOARD GUIDE</p><h2>Kontrol Mouse dan Keyboard</h2></div>
+        <span class="chapter-mark">02</span>
+      </div>
+      <div class="control-list">
+        <div><kbd>Drag kiri</kbd><span>Orbit kamera mengelilingi target</span></div>
+        <div><kbd>Scroll</kbd><span>Zoom mendekat atau menjauh</span></div>
+        <div><kbd>Drag kanan</kbd><span>Pan kamera dan target</span></div>
+        <div><kbd>Space</kbd><span>Jeda atau lanjutkan animasi</span></div>
+        <div><kbd>P / R</kbd><span>Ganti kamera · reset tampilan</span></div>
+        <div><kbd>← ↑ ↓ →</kbd><span>Gerakkan kubus di ground</span></div>
+        <div><kbd>Q / E</kbd><span>Putar kubus</span></div>
+        <div><kbd>M / B</kbd><span>Material kubus · ukuran shadow map</span></div>
+        <div><kbd>L / G</kbd><span>Light orbit · material gallery</span></div>
+      </div>
+      <div class="help">
+        <strong>State-based &amp; event-based input</strong>
+        Panah dan Q/E dibaca setiap frame selama ditahan (state-based) dan memakai delta time. Space, P, R, M, B, L, dan G hanya bereaksi sekali per penekanan (event-based). Kamera tetap bisa dinavigasi saat animasi dijeda.
+      </div>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">LAPORAN PRAKTIKUM</p><h2>Ringkasan Implementasi</h2></div>
+        <span class="chapter-mark">03</span>
+      </div>
+      <div class="report-columns">
+        <div class="report-intro"><p class="intro-label">HASIL PRAKTIKUM</p><p>Scene merender cube, sphere, dan ground dengan material berbeda, ditambah cylinder, cone, dan torus. Satu AmbientLight dan satu DirectionalLight menerangi scene, dan shadow jatuh ke ground. Kamera dinavigasi dengan OrbitControls, dan semua animasi memakai delta time dari THREE.Clock.</p></div>
+        <table class="data-table">
+          <thead><tr><th>Aspek</th><th>Implementasi</th></tr></thead>
+          <tbody>
+            <tr><td>Project</td><td>Node.js + Vite + paket <code>three</code></td></tr>
+            <tr><td>Scene</td><td><code>Scene</code> dengan <code>scene.background</code></td></tr>
+            <tr><td>Camera</td><td>Perspective dan Orthographic + OrbitControls</td></tr>
+            <tr><td>Geometry</td><td>Box, Sphere, Plane, Cylinder, Cone, Torus</td></tr>
+            <tr><td>Material</td><td>Basic, Normal, Lambert, Phong</td></tr>
+            <tr><td>Light</td><td>AmbientLight + DirectionalLight + shadow</td></tr>
+            <tr><td>Animation</td><td><code>requestAnimationFrame</code> + <code>THREE.Clock</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel pipeline-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">WEBGL VS THREE.JS</p><h2>Abstraction di Atas WebGL</h2></div>
+        <span class="chapter-mark">04</span>
+      </div>
+      <p class="flow-caption">Three.js tidak menggantikan WebGL. Konsep dari Pertemuan 2 sampai 5 tetap berjalan, tetapi dikelola oleh library.</p>
+      <div class="flow-line"><span>JAVASCRIPT APP</span><b>→</b><span>THREE.JS</span><b>→</b><span>WEBGL</span><b>→</b><span>GPU</span></div>
+      <div class="pipeline-grid">
+        <div><strong>Scene graph</strong><p>Mesh, Light, dan Group ditambahkan ke Scene lewat <code>scene.add()</code>.</p></div>
+        <div><strong>BufferGeometry</strong><p>Menyimpan attribute position, normal, dan uv, yaitu vertex data yang dulu dibuat manual.</p></div>
+        <div><strong>Material + Light</strong><p>Material menggantikan shader dan parameter render. Light menggantikan perhitungan lighting manual.</p></div>
+        <div><strong>WebGLRenderer</strong><p>Mengelola context, buffer, shader program, GPU state, dan draw call.</p></div>
+      </div>
+      <table class="data-table" style="margin-top: 16px;">
+        <thead><tr><th>Konsep WebGL</th><th>Padanan di Three.js</th></tr></thead>
+        <tbody>
+          <tr><td>Kumpulan object yang dikelola aplikasi</td><td><code>Scene</code></td></tr>
+          <tr><td>View + Projection</td><td><code>PerspectiveCamera</code></td></tr>
+          <tr><td>Vertex dan index buffer</td><td><code>BufferGeometry</code></td></tr>
+          <tr><td>Shader + parameter render</td><td><code>Material</code></td></tr>
+          <tr><td>Geometry yang dirender</td><td><code>Mesh</code></td></tr>
+          <tr><td>Model Matrix</td><td><code>position</code>, <code>rotation</code>, <code>scale</code></td></tr>
+          <tr><td>Perhitungan lighting manual</td><td><code>Light</code> + material yang merespons light</td></tr>
+          <tr><td>Draw call manual</td><td><code>WebGLRenderer</code></td></tr>
+          <tr><td>Canvas WebGL</td><td><code>renderer.domElement</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel core-tasks-panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">TUGAS INTI</p><h2>Konsep Utama Pertemuan 6</h2></div>
+        <span class="chapter-mark">05</span>
+      </div>
+      <div class="core-task-grid">
+        <article class="core-task core-cyan"><span class="core-task-number">01</span><h3>Scene &amp; Background</h3><p><code>Scene</code> adalah container utama object 3D. Warna latar diatur lewat <code>scene.background</code>, setara <code>gl.clearColor</code> pada WebGL manual.</p></article>
+        <article class="core-task core-yellow"><span class="core-task-number">02</span><h3>Camera &amp; OrbitControls</h3><p><code>PerspectiveCamera</code> memakai FOV, aspect, near, dan far seperti Perspective Projection di Pertemuan 4. OrbitControls menggerakkan kamera mengelilingi target.</p></article>
+        <article class="core-task core-pink"><span class="core-task-number">03</span><h3>WebGLRenderer</h3><p>Mengelola WebGL context, buffer, shader, dan draw call. Canvas dihasilkan <code>renderer.domElement</code>, dan pixel ratio dibatasi maksimal 2.</p></article>
+        <article class="core-task core-green"><span class="core-task-number">04</span><h3>BufferGeometry</h3><p>Geometry menyimpan attribute <code>position</code>, <code>normal</code>, dan <code>uv</code>. Jumlah segment sphere menentukan jumlah vertex, yang tampil di HUD.</p></article>
+        <article class="core-task core-cyan"><span class="core-task-number">05</span><h3>Material &amp; Light</h3><p>Basic dan Normal tidak dipengaruhi light. Lambert menghitung diffuse, dan Phong menambahkan highlight specular-like.</p></article>
+        <article class="core-task core-yellow"><span class="core-task-number">06</span><h3>Transform &amp; Model Matrix</h3><p><code>position</code>, <code>rotation</code> (radian), dan <code>scale</code> diubah menjadi Model Matrix oleh Three.js. Vertex buffer tidak diubah manual.</p></article>
+        <article class="core-task core-pink"><span class="core-task-number">07</span><h3>Shadow</h3><p>Butuh empat syarat: <code>shadowMap.enabled</code>, <code>light.castShadow</code>, <code>mesh.castShadow</code>, dan <code>ground.receiveShadow</code>. Matikan satu per satu lewat checkbox untuk melihat efeknya.</p></article>
+        <article class="core-task core-green"><span class="core-task-number">08</span><h3>Delta Time &amp; Responsive</h3><p><code>THREE.Clock</code> memberi delta dalam detik, sehingga kecepatan dinyatakan per detik. Saat resize, <code>camera.aspect</code> diperbarui dan <code>updateProjectionMatrix()</code> dipanggil.</p></article>
+      </div>
+    </section>
+
+    <section class="panel checklist-panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHECKLIST</p><h2>Checklist Praktikum</h2></div>
+        <span class="chapter-mark">06</span>
+      </div>
+      <ul class="checklist">
+        <li><span>&#x2713;</span><div>rotation<small><code>cube.rotation</code> berubah tiap frame, dan Q/E memutar kubus</small></div></li>
+        <li><span>&#x2713;</span><div>scale<small><code>cube.scale.set(1.2, 1.2, 1.2)</code></small></div></li>
+        <li><span>&#x2713;</span><div>AmbientLight<small>intensitas diatur lewat slider Ambient</small></div></li>
+        <li><span>&#x2713;</span><div>DirectionalLight<small>posisi awal (3, 5, 2), bisa mengorbit dengan L</small></div></li>
+        <li><span>&#x2713;</span><div>shadow<small><code>shadowMap.enabled</code>, <code>castShadow</code>, dan <code>receiveShadow</code> aktif</small></div></li>
+        <li><span>&#x2713;</span><div>animation loop<small><code>requestAnimationFrame(animate)</code></small></div></li>
+        <li><span>&#x2713;</span><div>delta time<small><code>THREE.Clock</code>, kecepatan dinyatakan per detik</small></div></li>
+        <li><span>&#x2713;</span><div>responsive rendering<small><code>camera.aspect</code> dan <code>updateProjectionMatrix()</code> saat resize</small></div></li>
+      </ul>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">PENGUJIAN</p><h2>Tabel Test Case</h2></div>
+        <span class="chapter-mark">07</span>
+      </div>
+      <div class="report-intro test-case-status">
+        <p><strong id="testSummary">Status Pengujian</strong> Terdapat 16 skenario pengujian untuk memeriksa rendering, kamera, material, light, shadow, input, HUD, dan console.</p>
+      </div>
+      <div class="report-columns test-case-columns">
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Pengujian</th><th>Hasil yang Diharapkan</th><th style="width: 70px; text-align: center;">Status</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Load aplikasi</td><td>Scene tampil tanpa error Console</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>2</td><td>Drag kiri</td><td>Sudut pandang berubah, transform objek tidak berubah</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>3</td><td>Scroll dan drag kanan</td><td>Zoom dan pan bekerja</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>4</td><td>Space</td><td>Objek berhenti, kamera tetap bisa digerakkan</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>5</td><td>P</td><td>Perspective dan Orthographic berganti, posisi dan target tetap</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>6</td><td>R</td><td>Kamera kembali ke tampilan awal</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>7</td><td>M atau menu material</td><td>Material kubus berganti</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>8</td><td>Directional dan ambient intensity</td><td>Terang scene berubah</td><td class="status-pass">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Pengujian</th><th>Hasil yang Diharapkan</th><th style="width: 70px; text-align: center;">Status</th></tr></thead>
+            <tbody>
+              <tr><td>9</td><td>Checkbox shadow</td><td>Shadow hilang saat salah satu syarat dimatikan</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>10</td><td>B atau menu shadow map</td><td>Ukuran 512, 1024, 2048 berganti</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>11</td><td>L</td><td>Cahaya dan shadow bergerak melingkar</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>12</td><td>Panah dan Q/E</td><td>Kubus bergerak dan berputar, tetap di atas ground</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>13</td><td>Segment sphere</td><td>Kehalusan dan jumlah vertex berubah</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>14</td><td>Resize browser</td><td>Scene tidak terdistorsi</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>15</td><td>HUD</td><td>FPS, triangle, objek, dan state tampil benar</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>16</td><td>Console</td><td>Tidak ada error normal</td><td class="status-pass">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel challenge-report report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHALLENGE REPORT</p><h2>Challenge A–H</h2></div>
+        <span class="chapter-mark">08</span>
+      </div>
+      <div class="challenge-grid">
+        <article class="challenge-card"><span class="challenge-number">A</span><h3>Tambah Geometry</h3><p>Cylinder, cone, dan torus ditambahkan dengan material, transform, dan posisi masing-masing agar tidak bertabrakan.</p></article>
+        <article class="challenge-card"><span class="challenge-number">B</span><h3>Material Gallery</h3><p>Tombol atau <kbd>G</kbd> menampilkan empat sphere sejajar dengan Basic, Normal, Lambert, dan Phong untuk dibandingkan.</p></article>
+        <article class="challenge-card"><span class="challenge-number">C</span><h3>OrthographicCamera</h3><p><kbd>P</kbd> berpindah antara Perspective dan Orthographic. Posisi dan target dipertahankan, dan frustum ikut diperbarui saat resize.</p></article>
+        <article class="challenge-card"><span class="challenge-number">D</span><h3>Light Animation</h3><p><kbd>L</kbd> menggerakkan DirectionalLight melingkar, dengan bola kuning sebagai penanda posisi cahaya.</p></article>
+        <article class="challenge-card"><span class="challenge-number">E</span><h3>Shadow Quality</h3><p><kbd>B</kbd> atau menu mengganti shadow map 512, 1024, dan 2048 untuk membandingkan kualitas dan biaya render.</p></article>
+        <article class="challenge-card"><span class="challenge-number">F</span><h3>Scene Information</h3><p>HUD menampilkan posisi kamera, jumlah object, triangle dari <code>renderer.info</code>, FPS, dan material aktif.</p></article>
+        <article class="challenge-card"><span class="challenge-number">G</span><h3>Toggle Animation</h3><p><kbd>Space</kbd> menjeda dan melanjutkan animasi objek dengan state boolean, sekali per penekanan.</p></article>
+        <article class="challenge-card"><span class="challenge-number">H</span><h3>Continuous Object Control</h3><p>Panah menggerakkan kubus dan <kbd>Q</kbd>/<kbd>E</kbd> memutarnya, dibaca setiap frame dengan delta time.</p></article>
+      </div>
+    </section>
+
+    <footer class="page-footer"><span>EF234504 · GRAFIKA KOMPUTER</span><span>THREE.JS MINI 3D SCENE</span><span>GROUP 04</span></footer>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
