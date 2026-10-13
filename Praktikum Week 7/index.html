@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111629" />
+    <meta name="description" content="Interactive 3D prototype untuk Praktikum Grafika Komputer Pertemuan 7." />
+    <title>Praktikum 07 | Interactive Web 3D Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="./assets/index-CcRQceUM.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CZtsvYvn.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">PRAKTIKUM 07 · INTERACTIVE 3D</p>
+          <h1>Interactive Web 3D Prototype</h1>
+          <p class="subtitle">Scene graph, PBR, GLB, animation, raycasting, selection, dan environment.</p>
+        </div>
+        <div class="header-meta"><span class="status" id="loadBadge"><i></i> GLB LOADING</span></div>
+      </header>
+
+      <div class="content-grid">
+        <section class="panel stage">
+          <div class="viewport" id="viewport">
+            <span class="canvas-label">LIVE THREE.JS RENDER</span>
+            <div class="loading-overlay" id="loadingOverlay">Memuat model GLB…</div>
+          </div>
+          <div class="hud">
+            <p>Hover<strong id="hoverInfo">-</strong></p>
+            <p>Selected<strong id="selectedInfo">-</strong></p>
+            <p>Environment<strong id="environmentInfo">ON</strong></p>
+            <p>GLB<strong id="clipInfo">Loading…</strong></p>
+            <p>Objects<strong id="objectInfo">0</strong></p>
+            <p>FPS<strong id="fpsInfo">0</strong></p>
+          </div>
+          <section class="selection-panel" aria-label="Informasi selection">
+            <div><p class="section-kicker">SELECTION INFORMATION</p><h2 id="selectionTitle">Belum ada objek dipilih</h2></div>
+            <dl>
+              <div><dt>Position</dt><dd id="selectionPosition">-</dd></div>
+              <div><dt>Rotation</dt><dd id="selectionRotation">-</dd></div>
+              <div><dt>Scale</dt><dd id="selectionScale">-</dd></div>
+              <div><dt>Material</dt><dd id="selectionMaterial">-</dd></div>
+            </dl>
+          </section>
+        </section>
+
+        <aside class="panel controls">
+          <p class="section-kicker">PARAMETER CONTROL</p>
+          <label for="cameraMode">Active camera<select id="cameraMode"><option value="perspective">Perspective</option><option value="orthographic">Orthographic</option></select></label>
+          <label for="fov">Camera FOV <output id="fovValue">52°</output><input id="fov" type="range" min="30" max="80" value="52" /></label>
+          <label for="roughness">Roughness <output id="roughnessValue">0.35</output><input id="roughness" type="range" min="0" max="1" step="0.01" value="0.35" /></label>
+          <label for="metalness">Metalness <output id="metalnessValue">0.65</output><input id="metalness" type="range" min="0" max="1" step="0.01" value="0.65" /></label>
+          <label for="orbitSpeed">Orbit speed <output id="orbitSpeedValue">0.45</output><input id="orbitSpeed" type="range" min="0" max="1" step="0.01" value="0.45" /></label>
+
+          <fieldset>
+            <legend>OrbitControls · Camera</legend>
+            <label class="check"><input id="controlsEnabled" type="checkbox" checked /> Aktifkan kontrol kamera</label>
+            <label class="check"><input id="panEnabled" type="checkbox" checked /> Izinkan pan</label>
+            <label class="check"><input id="dampingEnabled" type="checkbox" checked /> Damping</label>
+            <label for="damping">Damping factor <output id="dampingValue">0.08</output><input id="damping" type="range" min="0" max="0.25" step="0.01" value="0.08" /></label>
+            <label for="rotateSpeed">Camera rotate speed <output id="rotateValue">1.00</output><input id="rotateSpeed" type="range" min="0.2" max="2" step="0.05" value="1" /></label>
+            <label for="zoomSpeed">Camera zoom speed <output id="zoomValue">1.00</output><input id="zoomSpeed" type="range" min="0.2" max="2" step="0.05" value="1" /></label>
+          </fieldset>
+
+          <div class="actions"><button id="environmentButton" type="button">Environment (E)</button><button id="resetButton" type="button">Reset (R)</button><button data-clip="0" type="button">Clip 1 · Idle</button><button data-clip="1" type="button">Clip 2 · Walk</button><button data-clip="2" type="button">Clip 3 · Run</button><button id="galleryButton" type="button">PBR Gallery (G)</button><button id="solarButton" type="button">Solar (S)</button></div>
+          <div class="help"><strong>Interaksi</strong><span>Drag kiri: orbit · scroll: zoom</span><span>Drag kanan: pan · drag tidak memilih</span><span>Hover: emissive + scale 1.06</span><span>Click: pilih objek + panel informasi</span><span>1 / 2 / 3: ganti animation clip</span><span>E: environment · G: PBR gallery · S: solar system</span><span>R: reset scene dan kamera</span></div>
+          <p class="asset-status" id="assetStatus">Menyiapkan scene…</p>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>
