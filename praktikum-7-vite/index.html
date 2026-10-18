@@ -1,75 +1,321 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#111629" />
-    <meta name="description" content="Interactive 3D prototype untuk Praktikum Grafika Komputer Pertemuan 7." />
-    <title>Praktikum 07 | Interactive Web 3D Prototype</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <main class="page-shell">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">PRAKTIKUM 07 · INTERACTIVE 3D</p>
-          <h1>Interactive Web 3D Prototype</h1>
-          <p class="subtitle">Scene graph, PBR, GLB, animation, raycasting, selection, dan environment.</p>
-        </div>
-        <div class="header-meta"><span class="status" id="loadBadge"><i></i> GLB LOADING</span></div>
-      </header>
-
-      <div class="content-grid">
-        <section class="panel stage">
-          <div class="viewport" id="viewport">
-            <span class="canvas-label">LIVE THREE.JS RENDER</span>
-            <div class="loading-overlay" id="loadingOverlay">Memuat model GLB…</div>
-          </div>
-          <div class="hud">
-            <p>Hover<strong id="hoverInfo">-</strong></p>
-            <p>Selected<strong id="selectedInfo">-</strong></p>
-            <p>Environment<strong id="environmentInfo">ON</strong></p>
-            <p>GLB<strong id="clipInfo">Loading…</strong></p>
-            <p>Objects<strong id="objectInfo">0</strong></p>
-            <p>FPS<strong id="fpsInfo">0</strong></p>
-          </div>
-          <section class="selection-panel" aria-label="Informasi selection">
-            <div><p class="section-kicker">SELECTION INFORMATION</p><h2 id="selectionTitle">Belum ada objek dipilih</h2></div>
-            <dl>
-              <div><dt>Position</dt><dd id="selectionPosition">-</dd></div>
-              <div><dt>Rotation</dt><dd id="selectionRotation">-</dd></div>
-              <div><dt>Scale</dt><dd id="selectionScale">-</dd></div>
-              <div><dt>Material</dt><dd id="selectionMaterial">-</dd></div>
-            </dl>
-          </section>
-        </section>
-
-        <aside class="panel controls">
-          <p class="section-kicker">PARAMETER CONTROL</p>
-          <label for="cameraMode">Active camera<select id="cameraMode"><option value="perspective">Perspective</option><option value="orthographic">Orthographic</option></select></label>
-          <label for="fov">Camera FOV <output id="fovValue">52°</output><input id="fov" type="range" min="30" max="80" value="52" /></label>
-          <label for="roughness">Roughness <output id="roughnessValue">0.35</output><input id="roughness" type="range" min="0" max="1" step="0.01" value="0.35" /></label>
-          <label for="metalness">Metalness <output id="metalnessValue">0.65</output><input id="metalness" type="range" min="0" max="1" step="0.01" value="0.65" /></label>
-          <label for="orbitSpeed">Orbit speed <output id="orbitSpeedValue">0.45</output><input id="orbitSpeed" type="range" min="0" max="1" step="0.01" value="0.45" /></label>
-
-          <fieldset>
-            <legend>OrbitControls · Camera</legend>
-            <label class="check"><input id="controlsEnabled" type="checkbox" checked /> Aktifkan kontrol kamera</label>
-            <label class="check"><input id="panEnabled" type="checkbox" checked /> Izinkan pan</label>
-            <label class="check"><input id="dampingEnabled" type="checkbox" checked /> Damping</label>
-            <label for="damping">Damping factor <output id="dampingValue">0.08</output><input id="damping" type="range" min="0" max="0.25" step="0.01" value="0.08" /></label>
-            <label for="rotateSpeed">Camera rotate speed <output id="rotateValue">1.00</output><input id="rotateSpeed" type="range" min="0.2" max="2" step="0.05" value="1" /></label>
-            <label for="zoomSpeed">Camera zoom speed <output id="zoomValue">1.00</output><input id="zoomSpeed" type="range" min="0.2" max="2" step="0.05" value="1" /></label>
-          </fieldset>
-
-          <div class="actions"><button id="environmentButton" type="button">Environment (E)</button><button id="resetButton" type="button">Reset (R)</button><button data-clip="0" type="button">Clip 1 · Idle</button><button data-clip="1" type="button">Clip 2 · Walk</button><button data-clip="2" type="button">Clip 3 · Run</button><button id="galleryButton" type="button">PBR Gallery (G)</button><button id="solarButton" type="button">Solar (S)</button></div>
-          <div class="help"><strong>Interaksi</strong><span>Drag kiri: orbit · scroll: zoom</span><span>Drag kanan: pan · drag tidak memilih</span><span>Hover: emissive + scale 1.06</span><span>Click: pilih objek + panel informasi</span><span>1 / 2 / 3: ganti animation clip</span><span>E: environment · G: PBR gallery · S: solar system</span><span>R: reset scene dan kamera</span></div>
-          <p class="asset-status" id="assetStatus">Menyiapkan scene…</p>
-        </aside>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Laporan dan scene 3D interaktif Praktikum Grafika Komputer 7 dengan Three.js.">
+  <meta name="theme-color" content="#111629">
+  <title>Praktikum 7 | Interactive Web 3D Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 07</p>
+        <h1>Output Praktikum 7 <span>Interactive Web 3D Prototype</span></h1>
+        <p class="subtitle">Pengembangan mini scene Three.js menjadi aplikasi 3D interaktif sebagai prototype persiapan UTS Interactive Web 3D Project.</p>
       </div>
-    </main>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 4</span>
+        <span class="status"><i></i> <span id="threeVersion">Three.js</span> aktif</span>
+        <small>Willy Marcelius &amp; Rennard Filbert Tanjaya</small>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <section class="panel stage">
+        <div class="panel-heading">
+          <div><p class="section-kicker">MAIN QUEST</p><h2>Interactive 3D Scene</h2></div>
+          <span class="canvas-size" id="canvasSize">Menyiapkan canvas...</span>
+        </div>
+        <div class="viewport" id="viewport">
+          <span class="canvas-label">LIVE THREE.JS RENDER</span>
+          <div class="loading-overlay" id="loadingOverlay">Memuat model GLB...</div>
+        </div>
+        <section class="hud" aria-label="Informasi scene">
+          <p><span>Kamera</span><strong id="cameraInfo">Perspective</strong></p>
+          <p><span>Posisi kamera</span><strong id="positionInfo">-</strong></p>
+          <p><span>Objek</span><strong id="objectInfo">0</strong></p>
+          <p><span>Triangles</span><strong id="triangleInfo">0</strong></p>
+          <p><span>FPS</span><strong id="fpsInfo">0</strong></p>
+          <p><span>Lights</span><strong id="lightInfo">0</strong></p>
+          <p><span>Hover</span><strong id="hoverInfo">-</strong></p>
+          <p><span>Selected</span><strong id="selectedInfo">-</strong></p>
+          <p><span>Environment</span><strong id="environmentInfo">ON</strong></p>
+          <p><span>Animasi GLB</span><strong id="animationInfo">Memuat...</strong></p>
+          <p><span>Bloom</span><strong id="bloomInfo">ON</strong></p>
+        </section>
+        <section class="selection-panel" aria-label="Informasi objek terpilih">
+          <div><p class="section-kicker">SELECTION INFORMATION</p><h2 id="selectionTitle">Belum ada objek dipilih</h2></div>
+          <dl>
+            <div><dt>Position</dt><dd id="selectionPosition">-</dd></div>
+            <div><dt>Rotation</dt><dd id="selectionRotation">-</dd></div>
+            <div><dt>Scale</dt><dd id="selectionScale">-</dd></div>
+            <div><dt>Material</dt><dd id="selectionMaterial">-</dd></div>
+          </dl>
+        </section>
+        <p class="flow-caption"><b>Scene + Camera + Light</b> diproses oleh <b>WebGLRenderer</b> dan post-processing composer, lalu ditampilkan pada canvas WebGL.</p>
+      </section>
+
+      <aside class="panel controls">
+        <div class="panel-heading compact">
+          <div><p class="section-kicker">PARAMETER CONTROL</p><h2>Scene Controls</h2></div>
+          <span class="chapter-mark">01</span>
+        </div>
+
+        <p class="section-kicker control-kicker">KAMERA</p>
+        <div class="actions">
+          <button id="cameraButton" type="button">Perspective / Ortho (C)</button>
+          <button id="resetButton" type="button">Reset Kamera (R)</button>
+        </div>
+        <label for="fovControl">Field of View <output id="fovValue">60°</output></label>
+        <input id="fovControl" type="range" min="30" max="90" step="1" value="60">
+
+        <p class="section-kicker control-kicker">MATERIAL PBR</p>
+        <label for="roughnessControl">Roughness sphere <output id="roughnessValue">0.25</output></label>
+        <input id="roughnessControl" type="range" min="0" max="1" step="0.01" value="0.25">
+        <label for="metalnessControl">Metalness sphere <output id="metalnessValue">0.10</output></label>
+        <input id="metalnessControl" type="range" min="0" max="1" step="0.01" value="0.10">
+
+        <p class="section-kicker control-kicker">ENVIRONMENT &amp; POST-PROCESSING</p>
+        <label for="environmentControl">Environment intensity <output id="environmentValue">0.55</output></label>
+        <input id="environmentControl" type="range" min="0" max="2" step="0.01" value="0.55">
+        <label for="bloomControl">Bloom strength <output id="bloomValue">0.60</output></label>
+        <input id="bloomControl" type="range" min="0" max="2" step="0.01" value="0.60">
+
+        <p class="section-kicker control-kicker">SCENE &amp; ANIMATION</p>
+        <div class="actions">
+          <button id="environmentButton" type="button">Environment (E)</button>
+          <button id="bloomButton" type="button">Bloom (B)</button>
+          <button data-clip="idle" data-fallback="0" type="button">Idle (1)</button>
+          <button data-clip="walk" data-fallback="1" type="button">Walk (2)</button>
+          <button data-clip="run" data-fallback="2" type="button">Run (3)</button>
+        </div>
+        <p class="asset-status" id="loadingInfo" aria-live="polite">Menyiapkan scene...</p>
+        <div class="help">
+          <strong>Catatan input</strong>
+          Drag kiri untuk orbit, scroll untuk zoom, dan drag kanan untuk pan. Klik objek untuk memilihnya. Setelah memakai kontrol, klik kanvas agar shortcut keyboard aktif kembali.
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel keyboard-guide-panel report-panel" aria-label="Panduan keyboard dan mouse">
+      <div class="panel-heading compact">
+        <div><p class="section-kicker">KEYBOARD GUIDE</p><h2>Kontrol Mouse dan Keyboard</h2></div>
+        <span class="chapter-mark">02</span>
+      </div>
+      <div class="control-list">
+        <div><kbd>Drag kiri</kbd><span>Orbit kamera mengelilingi target</span></div>
+        <div><kbd>Scroll</kbd><span>Zoom mendekat atau menjauh</span></div>
+        <div><kbd>Drag kanan</kbd><span>Pan kamera dan target</span></div>
+        <div><kbd>Klik objek</kbd><span>Pilih objek dan tampilkan transform</span></div>
+        <div><kbd>1 / 2 / 3</kbd><span>Pilih animation clip idle, walk, atau run</span></div>
+        <div><kbd>C / R</kbd><span>Ganti kamera / reset tampilan</span></div>
+        <div><kbd>E</kbd><span>Aktifkan atau matikan environment</span></div>
+        <div><kbd>B</kbd><span>Aktifkan atau matikan bloom</span></div>
+        <div><kbd>Hover</kbd><span>Sorot objek dengan emissive dan scale</span></div>
+      </div>
+      <div class="help">
+        <strong>Navigasi dan interaksi scene</strong>
+        OrbitControls menangani orbit, zoom, dan pan kamera. Raycaster mengubah posisi pointer menjadi ray dari kamera untuk menemukan objek yang dapat dipilih. Gerakan pointer dan klik pada canvas dipakai untuk hover serta selection.
+      </div>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">LAPORAN PRAKTIKUM</p><h2>Ringkasan Implementasi</h2></div>
+        <span class="chapter-mark">03</span>
+      </div>
+      <div class="report-columns">
+        <div class="report-intro">
+          <p class="intro-label">HASIL PRAKTIKUM</p>
+          <p>Praktikum ini mengembangkan fondasi scene, kamera, renderer, geometry, material, light, shadow, dan animation loop dari Pertemuan 6. Scene kini mengorganisasi objek dengan hierarchy, memuat asset eksternal, memakai material PBR, serta merespons input pengguna melalui animasi, raycasting, hover, dan click selection.</p>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Aspek</th><th>Implementasi</th></tr></thead>
+          <tbody>
+            <tr><td>Project</td><td>Node.js + Vite + paket <code>three</code></td></tr>
+            <tr><td>Scene graph</td><td><code>THREE.Group</code>, parent-child, local transform, dan world transform</td></tr>
+            <tr><td>Camera</td><td>PerspectiveCamera / OrthographicCamera + OrbitControls</td></tr>
+            <tr><td>Material</td><td>MeshStandardMaterial dan material PBR yang dapat diubah</td></tr>
+            <tr><td>Model</td><td>GLB dimuat dengan <code>GLTFLoader</code> dan disesuaikan ke ground</td></tr>
+            <tr><td>Loading</td><td>Asynchronous <code>GLTFLoader</code>, progress, dan error handling</td></tr>
+            <tr><td>Animation</td><td><code>AnimationMixer</code>, clips, crossfade, dan delta time</td></tr>
+            <tr><td>Interaction</td><td>Raycaster recursive, hover, click, selection state, dan feedback</td></tr>
+            <tr><td>Environment</td><td>Perbedaan <code>scene.background</code> dan <code>scene.environment</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel pipeline-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">ASSET &amp; RENDER PIPELINE</p><h2>Dari GLB ke Canvas</h2></div>
+        <span class="chapter-mark">04</span>
+      </div>
+      <p class="flow-caption">Asset, hierarchy, dan input pengguna terintegrasi dengan fondasi rendering dari Pertemuan 6 untuk membentuk aplikasi 3D interaktif.</p>
+      <div class="flow-line"><span>SCENE + CAMERA</span><b>→</b><span>HIERARCHY + PBR</span><b>→</b><span>GLB + ANIMATION</span><b>→</b><span>RAYCAST + STATE</span><b>→</b><span>VISUAL + UI FEEDBACK</span></div>
+      <div class="pipeline-grid">
+        <div><strong>GLTFLoader</strong><p>Memuat scene dan animation clips dari <code>public/models/model.glb</code>.</p></div>
+        <div><strong>HDRLoader + PMREM</strong><p>HDRI terlihat sebagai background dan menjadi sumber environment lighting untuk material PBR. RoomEnvironment menjadi cadangan.</p></div>
+        <div><strong>Scene graph</strong><p>Group mengatur hubungan parent-child dan orbit; transform lokal membentuk transform world.</p></div>
+        <div><strong>Asynchronous loading</strong><p>Model digunakan setelah callback GLTFLoader selesai; progress dan kegagalan pemuatan diperlihatkan pada HUD.</p></div>
+      </div>
+      <table class="data-table" style="margin-top: 16px;">
+        <thead><tr><th>Konsep</th><th>Peran dalam scene</th></tr></thead>
+        <tbody>
+          <tr><td>Scene graph</td><td>Hierarki transform untuk Group dan objek turunannya</td></tr>
+          <tr><td>Bounding box</td><td><code>Box3</code> mengukur dan menempatkan model GLB pada ground</td></tr>
+          <tr><td>AnimationMixer</td><td>Memutar clip GLB dan melakukan transisi antar aksi</td></tr>
+          <tr><td>Raycaster</td><td>Mendeteksi objek di bawah pointer pada canvas</td></tr>
+          <tr><td>Environment map</td><td><code>scene.background</code> untuk latar; <code>scene.environment</code> untuk respons material</td></tr>
+          <tr><td>Post-processing</td><td>RenderPass, UnrealBloomPass, dan OutputPass pada EffectComposer</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel core-tasks-panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">TUGAS INTI</p><h2>Konsep Utama Pertemuan 7</h2></div>
+        <span class="chapter-mark">05</span>
+      </div>
+      <div class="core-task-grid">
+        <article class="core-task core-cyan"><span class="core-task-number">01</span><h3>Scene Graph &amp; Group</h3><p><code>THREE.Group</code> menyatukan beberapa object. Child mewarisi transform parent, sementara transform lokalnya tetap tersimpan sendiri.</p></article>
+        <article class="core-task core-yellow"><span class="core-task-number">02</span><h3>Local &amp; World Transform</h3><p><code>child.position</code> menunjukkan posisi lokal. <code>getWorldPosition()</code> memperlihatkan hasil komposisi transform parent dan child.</p></article>
+        <article class="core-task core-pink"><span class="core-task-number">03</span><h3>PBR: Roughness &amp; Metalness</h3><p><code>MeshStandardMaterial</code> memakai roughness untuk karakter permukaan dan metalness untuk respons material metal terhadap environment.</p></article>
+        <article class="core-task core-green"><span class="core-task-number">04</span><h3>GLB, Hierarchy &amp; Shadow</h3><p><code>GLTFLoader</code> memuat asset secara asynchronous. <code>traverse()</code> memeriksa descendant dan mengaktifkan shadow pada mesh hasil import.</p></article>
+        <article class="core-task core-cyan"><span class="core-task-number">05</span><h3>AnimationMixer &amp; Delta</h3><p>Animation clip dijalankan dengan <code>AnimationMixer</code> dan diperbarui menggunakan delta time pada setiap frame.</p></article>
+        <article class="core-task core-yellow"><span class="core-task-number">06</span><h3>Raycasting &amp; NDC</h3><p>Koordinat pointer pada canvas diubah ke NDC, dibuat menjadi ray dari kamera, lalu diuji secara recursive terhadap objek interaktif.</p></article>
+        <article class="core-task core-pink"><span class="core-task-number">07</span><h3>Hover, Click &amp; Selection State</h3><p>Hover bersifat sementara dan selection bertahan setelah klik. Keduanya memberi visual feedback serta memperbarui informasi UI.</p></article>
+        <article class="core-task core-green"><span class="core-task-number">08</span><h3>Environment Map</h3><p><code>scene.background</code> menentukan latar yang terlihat, sedangkan <code>scene.environment</code> memberi pencahayaan/refleksi pada material.</p></article>
+      </div>
+    </section>
+
+    <section class="panel checklist-panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHECKLIST</p><h2>Checklist Implementasi</h2></div>
+        <span class="chapter-mark">06</span>
+      </div>
+      <ul class="checklist">
+        <li><span>&#x2713;</span><div>Project dan scene<small>Scene, camera, renderer, geometry, material, mesh, light, ground, shadow, dan animation loop</small></div></li>
+        <li><span>&#x2713;</span><div>Hierarchy parent-child<small>Child berada di bawah parent dan ikut menerima transform parent</small></div></li>
+        <li><span>&#x2713;</span><div>Local dan world transform<small>Posisi lokal child dapat dibedakan dari world position setelah parent ditransform</small></div></li>
+        <li><span>&#x2713;</span><div>THREE.Group<small>Group menerapkan transform ke semua child di dalamnya</small></div></li>
+        <li><span>&#x2713;</span><div>PBR material<small>Roughness dan metalness pada MeshStandardMaterial dapat diubah dan dibandingkan</small></div></li>
+        <li><span>&#x2713;</span><div>GLB dan hierarchy<small>GLTFLoader memuat asset secara asynchronous; traverse() memeriksa descendant dan mesh</small></div></li>
+        <li><span>&#x2713;</span><div>GLB shadow<small>Imported mesh menerima dan menghasilkan shadow</small></div></li>
+        <li><span>&#x2713;</span><div>AnimationMixer<small>Animation clip yang tersedia dimainkan dan mixer diperbarui dengan delta time</small></div></li>
+        <li><span>&#x2713;</span><div>Raycasting dan pointer NDC<small>Pointer canvas dikonversi ke NDC dan recursive raycast mendeteksi object</small></div></li>
+        <li><span>&#x2713;</span><div>Hover, click, dan selection<small>Hover memberi feedback sementara; click menyimpan selection dan memperbarui HUD</small></div></li>
+        <li><span>&#x2713;</span><div>Environment map<small>scene.environment memberi respons lighting/reflection pada material PBR</small></div></li>
+        <li><span>&#x2713;</span><div>Resize dan console<small>Scene tetap proporsional saat resize dan penggunaan normal bebas error console</small></div></li>
+      </ul>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">EKSPERIMEN WAJIB</p><h2>Pengamatan Scene dan Interaksi</h2></div>
+        <span class="chapter-mark">07</span>
+      </div>
+      <p class="flow-caption">Lakukan eksperimen berikut pada scene. Amati perubahan visual, catat hasilnya, dan gunakan pertanyaan sebagai panduan pembahasan laporan.</p>
+      <div class="report-columns test-case-columns">
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Eksperimen</th><th>Hal yang diamati / dijawab</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Parent-child</td><td>Ubah posisi parent dan child; apakah posisi lokal child ikut berubah? Bagaimana world position-nya?</td></tr>
+              <tr><td>2</td><td>Transform composition</td><td>Gabungkan translasi, rotasi, dan scale parent dengan rotasi child. Hubungkan hasilnya dengan komposisi world matrix.</td></tr>
+              <tr><td>3</td><td>THREE.Group</td><td>Gerakkan group lalu salah satu child. Kapan transform group atau child lebih tepat digunakan?</td></tr>
+              <tr><td>4</td><td>Roughness</td><td>Bandingkan roughness 0.05, 0.3, 0.7, dan 1.0 pada metalness tetap.</td></tr>
+              <tr><td>5</td><td>Metalness</td><td>Bandingkan metalness 0, 0.5, dan 1 pada roughness tetap.</td></tr>
+              <tr><td>6</td><td>Environment</td><td>Bandingkan environment aktif dan nonaktif pada material metal. Mengapa environment penting bagi PBR?</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Eksperimen</th><th>Hal yang diamati / dijawab</th></tr></thead>
+            <tbody>
+              <tr><td>7</td><td>GLB hierarchy</td><td>Catat nama root, jumlah object, beberapa mesh, dan apakah hierarchy model bertingkat.</td></tr>
+              <tr><td>8</td><td>Animation clip</td><td>Catat jumlah dan nama clip serta clip yang dijalankan. Jika tersedia, bandingkan beberapa clip.</td></tr>
+              <tr><td>9</td><td>Recursive raycast</td><td>Bandingkan intersection recursive aktif dan nonaktif pada GLB yang mempunyai child mesh.</td></tr>
+              <tr><td>10</td><td>Hover vs click</td><td>Amati feedback hover sementara dan selection persisten. Mengapa keduanya memerlukan state berbeda?</td></tr>
+              <tr><td>11</td><td>Pointer coordinate</td><td>Amati nilai pointer NDC di kiri atas, tengah, dan kanan bawah canvas; rentangnya mendekati -1 sampai +1.</td></tr>
+              <tr><td>12</td><td>Visual feedback</td><td>Bandingkan scale hover 1.06 dengan scale selection 1.12, emissive, dan informasi HUD.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">PENGUJIAN</p><h2>Daftar Test Case</h2></div>
+        <span class="chapter-mark">08</span>
+      </div>
+      <div class="report-intro test-case-status">
+        <p><strong>Hasil pengujian: lulus (20/20)</strong> Semua skenario sudah dicoba dan berjalan sesuai hasil yang diharapkan.</p>
+      </div>
+      <div class="report-columns test-case-columns">
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Pengujian</th><th>Hasil yang Diharapkan</th><th style="width: 70px; text-align: center;">Status</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Project load</td><td>Scene tampil</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>2</td><td>Hierarchy</td><td>Child mengikuti parent</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>3</td><td>Local transform</td><td>Child dapat bergerak relatif terhadap parent</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>4</td><td>World position</td><td>Berbeda ketika parent ditransform</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>5</td><td>Group transform</td><td>Semua child ikut</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>6</td><td>PBR</td><td>Roughness/metalness berpengaruh</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>7</td><td>GLB load</td><td>Model tampil</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>8</td><td>GLB hierarchy</td><td><code>traverse()</code> menemukan descendant</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>9</td><td>GLB shadow</td><td>Mesh menghasilkan/menerima shadow</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>10</td><td>Animation</td><td>Clip berjalan jika tersedia</td><td class="status-pass">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="test-case-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Pengujian</th><th>Hasil yang Diharapkan</th><th style="width: 70px; text-align: center;">Status</th></tr></thead>
+            <tbody>
+              <tr><td>11</td><td>Mixer update</td><td>Animasi maju setiap frame</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>12</td><td>Pointer NDC</td><td>Nilai -1 sampai +1</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>13</td><td>Raycast</td><td>Object dapat dideteksi</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>14</td><td>Hover</td><td>Feedback sementara muncul</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>15</td><td>Click</td><td>Object menjadi selected</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>16</td><td>Selection state</td><td>Tetap setelah pointer berpindah</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>17</td><td>HUD</td><td>Nama object tampil</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>18</td><td>Environment</td><td>PBR mendapat environment response</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>19</td><td>Resize</td><td>Scene tidak terdistorsi</td><td class="status-pass">✓ Pass</td></tr>
+              <tr><td>20</td><td>Console</td><td>Tidak ada error normal</td><td class="status-pass">✓ Pass</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel challenge-report report-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">CHALLENGE REPORT</p><h2>Eksperimen Scene Interaktif</h2></div>
+        <span class="chapter-mark">09</span>
+      </div>
+      <div class="challenge-grid">
+        <article class="challenge-card"><span class="challenge-number">A</span><h3>Multiple Animation Clips</h3><p>Tombol <kbd>1</kbd>, <kbd>2</kbd>, dan <kbd>3</kbd> memilih clip idle, walk, dan run yang tersedia. Perpindahan action memakai fade.</p></article>
+        <article class="challenge-card"><span class="challenge-number">B</span><h3>Click Menjalankan Animasi</h3><p>Klik model GLB memilih model dan menjalankan clip gesture satu kali bila asset memiliki clip wave, thumbsup, jump, atau yes.</p></article>
+        <article class="challenge-card"><span class="challenge-number">C</span><h3>Information Panel</h3><p>Selection menampilkan nama, posisi world, rotasi, scale dasar, dan tipe material object.</p></article>
+        <article class="challenge-card"><span class="challenge-number">D</span><h3>Hierarchical Solar System</h3><p>Sun, Earth Orbit, Earth, Moon Orbit, dan Moon tersusun berhierarki sehingga orbit tidak memerlukan hitung posisi world manual.</p></article>
+        <article class="challenge-card"><span class="challenge-number">E</span><h3>PBR Material Gallery</h3><p>Grid sphere membandingkan roughness 0.1, 0.5, 0.9 dengan metalness 0, 0.5, dan 1.</p></article>
+        <article class="challenge-card"><span class="challenge-number">F</span><h3>Hover Emissive</h3><p>Objek hover mendapat scale dan emissive highlight. Material GLB dikloning dan warna emissive dasar disimpan untuk memulihkan tampilan.</p></article>
+        <article class="challenge-card"><span class="challenge-number">G</span><h3>Selection Rotation</h3><p>Object terpilih berputar perlahan dengan delta time; putaran tambahan berhenti saat selection dilepas.</p></article>
+        <article class="challenge-card"><span class="challenge-number">H</span><h3>Environment Toggle</h3><p>Tombol atau <kbd>E</kbd> mengaktifkan dan menonaktifkan <code>scene.environment</code>; HUD menampilkan status ON/OFF.</p></article>
+      </div>
+    </section>
+
+    <footer class="page-footer"><span>EF234504 · GRAFIKA KOMPUTER</span><span>INTERACTIVE WEB 3D PROTOTYPE</span><span>GROUP 04</span></footer>
+  </main>
+  <script type="module" src="./src/main.js"></script>
+</body>
 </html>

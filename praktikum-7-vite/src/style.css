@@ -210,3 +210,5 @@ label,.label { display:block; margin:17px 0 7px; color:var(--muted); font-size:1
 .asset-status { margin: 14px 0 0; padding: 10px; border: 1px dashed #3a6480; color: var(--muted); background: var(--panel-deep); font-size: 10px; line-height: 1.5; }
 @media (max-width: 900px) { .stage .hud { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (max-width: 560px) { .selection-panel { grid-template-columns: 1fr; } .selection-panel dl { grid-template-columns: 1fr 1fr; } }
+
+.help span { display: block; }
