@@ -19,6 +19,7 @@ import "./style.css";
 const BASE = import.meta.env.BASE_URL;
 const MODEL_URL = `${BASE}models/model.glb`;
 const HDRI_URL = `${BASE}environment/environment.hdr`;
+const FIREPLACE_HDRI_URL = `${BASE}environment/fireplace_4k.hdr`;
 
 // Eksperimen 9: ubah ke false untuk melihat raycast tanpa descendant.
 const RECURSIVE_RAYCAST = true;
@@ -258,28 +259,242 @@ directionalLight.shadow.normalBias = 0.03;
 scene.add(directionalLight);
 
 /* ------------------------------------------------------------------ */
-/* Environment map (studio HDRI)                                       */
+/* Environment maps                                                     */
 /* ------------------------------------------------------------------ */
 
-// scene.background hanya latar yang terlihat; scene.environment dipakai
-// material PBR untuk reflection dan lighting. Keduanya sengaja dibedakan:
-// background memakai salinan HDRI yang lebih redup daripada environment.
 const pmremGenerator = new THREE.PMREMGenerator(renderer);
 
-// Cadangan jika file HDRI tidak ada.
+function createProceduralEnvironment(kind) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 512;
+
+  const context = canvas.getContext("2d");
+
+  if (kind === "gym") {
+    const wall = context.createLinearGradient(0, 0, 0, 512);
+    wall.addColorStop(0, "#101b30");
+    wall.addColorStop(0.42, "#233a54");
+    wall.addColorStop(0.62, "#26394b");
+    wall.addColorStop(1, "#172536");
+    context.fillStyle = wall;
+    context.fillRect(0, 0, 1024, 512);
+
+    // Roof trusses and steel beams of an indoor sports hall.
+    context.strokeStyle = "rgba(155, 190, 215, 0.28)";
+    context.lineWidth = 5;
+    for (let x = -256; x <= 1280; x += 128) {
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x + 180, 170);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(x + 180, 170);
+      context.lineTo(x + 256, 0);
+      context.stroke();
+    }
+    context.strokeStyle = "rgba(190, 215, 230, 0.25)";
+    context.lineWidth = 3;
+    [70, 115, 160].forEach(y => {
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(1024, y);
+      context.stroke();
+    });
+
+    // Ceiling lamps, repeated around the panorama.
+    for (let x = 32; x < 1024; x += 128) {
+      const glow = context.createRadialGradient(x, 190, 2, x, 190, 38);
+      glow.addColorStop(0, "rgba(255,255,235,0.95)");
+      glow.addColorStop(0.18, "rgba(255,245,190,0.55)");
+      glow.addColorStop(1, "rgba(255,235,170,0)");
+      context.fillStyle = glow;
+      context.fillRect(x - 40, 150, 80, 80);
+      context.fillStyle = "#fff4c4";
+      context.fillRect(x - 12, 184, 24, 7);
+    }
+
+    // Bleachers and colored seating tiers.
+    context.fillStyle = "#25364a";
+    context.fillRect(0, 218, 1024, 105);
+    ["#34475b", "#405168", "#8b3447", "#354c65", "#26394d"].forEach((color, index) => {
+      context.fillStyle = color;
+      context.fillRect(0, 228 + index * 15, 1024, 10);
+    });
+    context.fillStyle = "#f2b84b";
+    context.fillRect(0, 306, 1024, 6);
+    context.fillStyle = "#102033";
+    context.fillRect(0, 312, 1024, 17);
+
+    // Scoreboard banners around the arena.
+    for (let x = 35; x < 1024; x += 256) {
+      context.fillStyle = "#102744";
+      context.fillRect(x, 260, 150, 33);
+      context.strokeStyle = "#5bd9e8";
+      context.lineWidth = 2;
+      context.strokeRect(x + 1, 261, 148, 31);
+      context.fillStyle = "#eaf6ff";
+      context.font = "bold 12px Arial";
+      context.textAlign = "center";
+      context.fillText("GOR  •  BADMINTON  •  BASKET", x + 75, 281);
+    }
+
+    // Hardwood sports floor with badminton and basketball court markings.
+    const floor = context.createLinearGradient(0, 325, 0, 512);
+    floor.addColorStop(0, "#b5814f");
+    floor.addColorStop(0.5, "#d3a36b");
+    floor.addColorStop(1, "#815339");
+    context.fillStyle = floor;
+    context.fillRect(0, 329, 1024, 183);
+    context.fillStyle = "rgba(20, 35, 48, 0.16)";
+    for (let y = 345; y < 512; y += 18) context.fillRect(0, y, 1024, 2);
+
+    context.strokeStyle = "rgba(255,255,245,0.9)";
+    context.lineWidth = 3;
+    // Perspective court boundaries and badminton court lanes.
+    context.beginPath();
+    context.moveTo(0, 332);
+    context.lineTo(512, 490);
+    context.lineTo(1024, 332);
+    context.moveTo(150, 332);
+    context.lineTo(150, 512);
+    context.moveTo(350, 332);
+    context.lineTo(350, 512);
+    context.moveTo(674, 332);
+    context.lineTo(674, 512);
+    context.moveTo(874, 332);
+    context.lineTo(874, 512);
+    context.moveTo(0, 410);
+    context.lineTo(1024, 410);
+    context.stroke();
+    context.strokeStyle = "#e85d45";
+    context.lineWidth = 5;
+    context.strokeRect(370, 342, 284, 157);
+    context.beginPath();
+    context.moveTo(512, 342);
+    context.lineTo(512, 499);
+    context.stroke();
+
+    // A badminton net and basketball hoops make the venue readable at a glance.
+    context.strokeStyle = "rgba(245,250,255,0.8)";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(315, 365);
+    context.lineTo(710, 365);
+    context.stroke();
+    for (const x of [315, 710]) {
+      context.beginPath();
+      context.moveTo(x, 340);
+      context.lineTo(x, 388);
+      context.stroke();
+    }
+    for (const x of [88, 936]) {
+      context.strokeStyle = "#e8edf4";
+      context.lineWidth = 5;
+      context.beginPath();
+      context.moveTo(x, 259);
+      context.lineTo(x, 310);
+      context.lineTo(x + (x < 500 ? 30 : -30), 310);
+      context.stroke();
+      context.strokeStyle = "#ff745c";
+      context.lineWidth = 4;
+      context.beginPath();
+      context.ellipse(x + (x < 500 ? 34 : -34), 311, 14, 4, 0, 0, Math.PI * 2);
+      context.stroke();
+    }
+  } else {
+    // Neutral procedural studio panorama with softboxes and a reflective floor.
+    const studio = context.createLinearGradient(0, 0, 0, 512);
+    studio.addColorStop(0, "#101827");
+    studio.addColorStop(0.45, "#344254");
+    studio.addColorStop(0.67, "#202a38");
+    studio.addColorStop(1, "#10151d");
+    context.fillStyle = studio;
+    context.fillRect(0, 0, 1024, 512);
+
+    context.fillStyle = "rgba(190,215,235,0.2)";
+    context.fillRect(0, 226, 1024, 3);
+    for (const x of [130, 390, 650, 910]) {
+      context.save();
+      context.translate(x, 130);
+      context.rotate(-0.15);
+      context.shadowColor = "rgba(210,235,255,0.65)";
+      context.shadowBlur = 28;
+      context.fillStyle = "rgba(225,239,250,0.85)";
+      context.fillRect(-54, -12, 108, 24);
+      context.restore();
+    }
+    const floor = context.createLinearGradient(0, 300, 0, 512);
+    floor.addColorStop(0, "#293646");
+    floor.addColorStop(1, "#10151d");
+    context.fillStyle = floor;
+    context.fillRect(0, 230, 1024, 282);
+    context.strokeStyle = "rgba(190,215,235,0.13)";
+    context.lineWidth = 2;
+    for (let x = -400; x <= 1400; x += 100) {
+      context.beginPath();
+      context.moveTo(512, 230);
+      context.lineTo(x, 512);
+      context.stroke();
+    }
+    for (let y = 285; y < 512; y += 42) {
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(1024, y);
+      context.stroke();
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+const proceduralStudio = createProceduralEnvironment("studio");
+
+// RoomEnvironment is also a fallback if the external studio HDRI is unavailable.
 let environmentMap = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+const environmentPresets = {
+  studio: {
+    label: "Studio Small 09 (HDR)",
+    background: proceduralStudio,
+    environment: environmentMap
+  },
+  procedural: {
+    label: "Procedural Studio",
+    background: proceduralStudio,
+    environment: proceduralStudio
+  },
+  fireplace: {
+    label: "Fireplace HDRI",
+    background: proceduralStudio,
+    environment: environmentMap
+  }
+};
+
+let activeEnvironment = "studio";
 
 let environmentOn = true;
 
-scene.environment = environmentMap;
 scene.environmentIntensity = LOOK.environmentIntensity;
 scene.backgroundBlurriness = LOOK.backgroundBlurriness;
 scene.backgroundIntensity = LOOK.backgroundIntensity;
 
 function applyEnvironment() {
-  scene.environment = environmentOn ? environmentMap : null;
-  setText("environmentInfo", environmentOn ? "ON" : "OFF");
+  const preset = environmentPresets[activeEnvironment];
+  scene.background = preset.background;
+  scene.environment = environmentOn ? preset.environment : null;
+  setText("environmentInfo", `${preset.label} · ${environmentOn ? "ON" : "OFF"}`);
+  $("environmentPreset").value = activeEnvironment;
   $("environmentButton").classList.toggle("active-control", environmentOn);
+}
+
+function setEnvironmentPreset(name) {
+  if (!environmentPresets[name]) return;
+  activeEnvironment = name;
+  applyEnvironment();
 }
 
 function toggleEnvironment() {
@@ -322,9 +537,13 @@ new HDRLoader().load(
     hdri.mapping = THREE.EquirectangularReflectionMapping;
 
     environmentMap = limitHdrBrightness(hdri, LOOK.environmentMaxBrightness);
-    scene.background = limitHdrBrightness(hdri, LOOK.backgroundMaxBrightness);
+    environmentPresets.studio.environment = environmentMap;
+    environmentPresets.studio.background = limitHdrBrightness(
+      hdri,
+      LOOK.backgroundMaxBrightness
+    );
 
-    applyEnvironment();
+    if (activeEnvironment === "studio") applyEnvironment();
   },
 
   undefined,
@@ -332,6 +551,30 @@ new HDRLoader().load(
   error => {
     console.warn(
       "HDRI gagal dimuat, memakai RoomEnvironment. Periksa public/environment/environment.hdr",
+      error
+    );
+  }
+);
+
+new HDRLoader().load(
+  FIREPLACE_HDRI_URL,
+  hdri => {
+    hdri.mapping = THREE.EquirectangularReflectionMapping;
+    environmentPresets.fireplace.background = limitHdrBrightness(
+      hdri,
+      LOOK.backgroundMaxBrightness
+    );
+    environmentPresets.fireplace.environment = limitHdrBrightness(
+      hdri,
+      LOOK.environmentMaxBrightness
+    );
+
+    if (activeEnvironment === "fireplace") applyEnvironment();
+  },
+  undefined,
+  error => {
+    console.warn(
+      "Fireplace HDRI gagal dimuat. Periksa public/environment/fireplace_4k.hdr",
       error
     );
   }
@@ -1113,6 +1356,10 @@ bindSlider("environmentControl", "environmentValue", value => value.toFixed(2), 
   scene.environmentIntensity = value;
 });
 
+$("environmentPreset").addEventListener("change", event => {
+  setEnvironmentPreset(event.target.value);
+});
+
 bindSlider("bloomControl", "bloomValue", value => value.toFixed(2), value => {
   bloomPass.strength = value;
 });
@@ -1307,6 +1554,9 @@ if (import.meta.env.DEV) {
     },
     get hovered() {
       return hoveredObject;
+    },
+    advanceMixer(seconds) {
+      mixer?.update(seconds);
     },
     get activeClip() {
       return [...actions].find(([, action]) => action === activeAction)?.[0] ?? null;

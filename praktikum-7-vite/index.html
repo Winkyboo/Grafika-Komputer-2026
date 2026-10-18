@@ -81,6 +81,12 @@
         <input id="metalnessControl" type="range" min="0" max="1" step="0.01" value="0.10">
 
         <p class="section-kicker control-kicker">ENVIRONMENT &amp; POST-PROCESSING</p>
+        <label for="environmentPreset">Skybox / Panorama</label>
+        <select id="environmentPreset">
+          <option value="studio">Studio Small 09 (HDR)</option>
+          <option value="procedural">Procedural Studio</option>
+          <option value="fireplace">Fireplace HDRI</option>
+        </select>
         <label for="environmentControl">Environment intensity <output id="environmentValue">0.55</output></label>
         <input id="environmentControl" type="range" min="0" max="2" step="0.01" value="0.55">
         <label for="bloomControl">Bloom strength <output id="bloomValue">0.60</output></label>
@@ -145,7 +151,7 @@
             <tr><td>Loading</td><td>Asynchronous <code>GLTFLoader</code>, progress, dan error handling</td></tr>
             <tr><td>Animation</td><td><code>AnimationMixer</code>, clips, crossfade, dan delta time</td></tr>
             <tr><td>Interaction</td><td>Raycaster recursive, hover, click, selection state, dan feedback</td></tr>
-            <tr><td>Environment</td><td>Perbedaan <code>scene.background</code> dan <code>scene.environment</code></td></tr>
+            <tr><td>Environment</td><td>Pemilih HDRI Studio, Fireplace, dan procedural studio untuk background serta lighting PBR</td></tr>
           </tbody>
         </table>
       </div>
@@ -160,7 +166,7 @@
       <div class="flow-line"><span>SCENE + CAMERA</span><b>→</b><span>HIERARCHY + PBR</span><b>→</b><span>GLB + ANIMATION</span><b>→</b><span>RAYCAST + STATE</span><b>→</b><span>VISUAL + UI FEEDBACK</span></div>
       <div class="pipeline-grid">
         <div><strong>GLTFLoader</strong><p>Memuat scene dan animation clips dari <code>public/models/model.glb</code>.</p></div>
-        <div><strong>HDRLoader + PMREM</strong><p>HDRI terlihat sebagai background dan menjadi sumber environment lighting untuk material PBR. RoomEnvironment menjadi cadangan.</p></div>
+        <div><strong>Environment presets</strong><p>Pilih HDRI Studio Small 09, procedural studio, atau Fireplace. Setiap preset menyediakan panorama sebagai background sekaligus environment lighting untuk material PBR.</p></div>
         <div><strong>Scene graph</strong><p>Group mengatur hubungan parent-child dan orbit; transform lokal membentuk transform world.</p></div>
         <div><strong>Asynchronous loading</strong><p>Model digunakan setelah callback GLTFLoader selesai; progress dan kegagalan pemuatan diperlihatkan pada HUD.</p></div>
       </div>
@@ -210,7 +216,7 @@
         <li><span>&#x2713;</span><div>AnimationMixer<small>Animation clip yang tersedia dimainkan dan mixer diperbarui dengan delta time</small></div></li>
         <li><span>&#x2713;</span><div>Raycasting dan pointer NDC<small>Pointer canvas dikonversi ke NDC dan recursive raycast mendeteksi object</small></div></li>
         <li><span>&#x2713;</span><div>Hover, click, dan selection<small>Hover memberi feedback sementara; click menyimpan selection dan memperbarui HUD</small></div></li>
-        <li><span>&#x2713;</span><div>Environment map<small>scene.environment memberi respons lighting/reflection pada material PBR</small></div></li>
+        <li><span>&#x2713;</span><div>Environment map<small>Studio, Fireplace HDRI, atau procedural studio dapat dipilih; environment memberi respons pada material PBR</small></div></li>
         <li><span>&#x2713;</span><div>Resize dan console<small>Scene tetap proporsional saat resize dan penggunaan normal bebas error console</small></div></li>
       </ul>
     </section>
@@ -310,7 +316,7 @@
         <article class="challenge-card"><span class="challenge-number">E</span><h3>PBR Material Gallery</h3><p>Grid sphere membandingkan roughness 0.1, 0.5, 0.9 dengan metalness 0, 0.5, dan 1.</p></article>
         <article class="challenge-card"><span class="challenge-number">F</span><h3>Hover Emissive</h3><p>Objek hover mendapat scale dan emissive highlight. Material GLB dikloning dan warna emissive dasar disimpan untuk memulihkan tampilan.</p></article>
         <article class="challenge-card"><span class="challenge-number">G</span><h3>Selection Rotation</h3><p>Object terpilih berputar perlahan dengan delta time; putaran tambahan berhenti saat selection dilepas.</p></article>
-        <article class="challenge-card"><span class="challenge-number">H</span><h3>Environment Toggle</h3><p>Tombol atau <kbd>E</kbd> mengaktifkan dan menonaktifkan <code>scene.environment</code>; HUD menampilkan status ON/OFF.</p></article>
+        <article class="challenge-card"><span class="challenge-number">H</span><h3>Environment Toggle</h3><p>Pilih HDRI studio, Fireplace, atau procedural studio. Tombol atau <kbd>E</kbd> mengaktifkan dan menonaktifkan environment lighting.</p></article>
       </div>
     </section>
 
