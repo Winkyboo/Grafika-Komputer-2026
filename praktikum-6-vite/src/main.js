@@ -63,7 +63,6 @@ renderer.setSize(sizes.width, sizes.height, false);
 renderer.shadowMap.enabled = true;
 canvasWrap.prepend(renderer.domElement);
 
-$("threeVersion").textContent = `Three.js r${THREE.REVISION}`;
 $("canvasSize").textContent = `${sizes.width} × ${sizes.height} PX`;
 
 // ======================================================

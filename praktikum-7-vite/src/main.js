@@ -69,8 +69,6 @@ const setText = (id, value) => {
 
 const viewport = $("viewport");
 
-setText("threeVersion", `Three.js r${THREE.REVISION}`);
-
 /* ------------------------------------------------------------------ */
 /* Scene, kamera, renderer                                             */
 /* ------------------------------------------------------------------ */
