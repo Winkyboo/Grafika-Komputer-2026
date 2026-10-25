@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Robot Swarm Factory</title>
+<style>
+:root{color-scheme:dark;--amber:#ffc15a;--cyan:#68e4ff;--red:#ff6868;--green:#61e6a9;--ink:#f2f7fc;--mute:#a5b4c4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#080e16;color:var(--ink);font-family:Inter,"Segoe UI",system-ui,sans-serif}
+canvas{display:block;touch-action:none}
+#hud{position:fixed;inset:0;padding:clamp(12px,2.2vw,28px);pointer-events:none}
+.row{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;max-width:900px}
+.gauge{position:relative;background:linear-gradient(145deg,#142231eF,#0b131deF);border:1px solid #8ab2ca30;border-radius:14px;padding:11px 16px;min-width:128px;box-shadow:0 12px 34px #0005,inset 0 1px #ffffff10;backdrop-filter:blur(14px)}
+.gauge:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;border-radius:14px 0 0 14px;background:var(--c,var(--cyan));box-shadow:0 0 14px color-mix(in srgb,var(--c,var(--cyan)) 65%,transparent)}
+.gauge small{display:flex;justify-content:space-between;gap:12px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.gauge b{display:block;margin-top:2px;font-size:clamp(24px,3vw,32px);line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.gauge:nth-child(2){--c:var(--amber)}
+.gauge.wide{flex:1;min-width:220px;--c:var(--green)}
+.bar{height:8px;margin-top:11px;background:#050b12;border:1px solid #ffffff16;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#25bd90,var(--green));border-radius:inherit;box-shadow:0 0 18px #61e6a977;transition:width .2s linear}
+#bossBox{display:none;margin-top:12px;max-width:470px;--c:var(--amber)}
+#bossBox small{font-size:11px}
+#bossFill{width:100%;background:linear-gradient(90deg,#ff4f53,var(--amber));box-shadow:0 0 18px #ff6a4866}
+#toast{position:fixed;left:50%;top:25%;transform:translateX(-50%);font-size:clamp(28px,6vw,54px);font-weight:850;letter-spacing:-.04em;opacity:0;pointer-events:none;text-shadow:0 5px 30px #000;animation:none}
+#toast.good{color:var(--green);animation:rise 1.1s ease-out}#toast.bad{color:var(--red);animation:rise 1.1s ease-out}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,16px) scale(.9)}15%{opacity:1;transform:translate(-50%,0) scale(1.08)}100%{opacity:0;transform:translate(-50%,-36px) scale(1)}}
+#msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;background:radial-gradient(ellipse at 50% 44%,#182a39c9 0,#0b1420e8 50%,#070b11f5 100%);backdrop-filter:blur(5px)}
+#msg:before{content:"FACTORY RUN  /  SURVIVAL PROTOCOL";color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.24em;text-shadow:0 0 18px #68e4ff77}
+#msg h1{margin:0;font-size:clamp(36px,8vw,76px);font-weight:850;letter-spacing:-.065em;line-height:.98;text-shadow:0 8px 40px #0008}
+#msg h1::after{content:"";display:block;height:3px;margin:16px auto 0;width:min(150px,45%);background:linear-gradient(90deg,transparent,var(--amber),transparent);box-shadow:0 0 18px #ffc15a66}
+#sub{margin:0;max-width:520px;line-height:1.65;color:#c2d0dd;font-size:clamp(14px,2vw,17px)}
+#legend{display:grid;gap:10px;text-align:left;font-size:14px;color:#d0dce7;padding:15px 19px;background:#101b27a8;border:1px solid #9fc3dc24;border-radius:16px;box-shadow:0 14px 40px #0003}
+#legend span{display:inline-block;width:12px;height:12px;margin-right:11px;vertical-align:-1px;border-radius:4px;box-shadow:0 0 12px currentColor}
+.g{background:var(--green);color:var(--green)}.r{background:var(--red);color:var(--red)}.y{background:repeating-linear-gradient(135deg,var(--amber) 0 4px,#111 4px 8px);color:var(--amber)}.d{background:var(--amber);color:var(--amber);transform:rotate(45deg) scale(.8)}.z{background:#ff2a2a88;border:1px solid var(--red);color:var(--red)}
+button{background:linear-gradient(135deg,#ffd27e,#ffad37);color:#251704;border:1px solid #ffe0a2;border-radius:12px;padding:14px 32px;font:800 16px inherit;font-family:inherit;letter-spacing:.02em;cursor:pointer;box-shadow:0 8px 24px #ffae3740,inset 0 1px #fff9;transition:transform .18s,box-shadow .18s}
+button:hover{transform:translateY(-2px);box-shadow:0 12px 30px #ffae3760,inset 0 1px #fff9}button:active{transform:translateY(1px)}button:focus-visible{outline:3px solid #fff;outline-offset:4px}
+#hud{z-index:2;padding:16px;display:flex;align-items:flex-start;gap:7px;color:#edf5fb}
+#msg{z-index:3}
+#toast{z-index:4}
+#hud .row{width:auto;max-width:none;display:flex;gap:7px;margin:0}
+#hud .gauge{min-width:0;width:108px;padding:8px 11px;border:1px solid #afc8d522;border-radius:7px;background:#101a22b8;box-shadow:0 5px 20px #0002;backdrop-filter:blur(8px)}
+#hud .gauge:before{width:2px;border-radius:7px 0 0 7px;box-shadow:none}
+#hud .gauge small{font-size:8px;letter-spacing:.12em;color:#aab8c2}
+#hud .metric-line{gap:7px}.metric-line b{font-size:23px;margin-top:2px;text-shadow:none}.metric-unit{font-size:7px;letter-spacing:.1em}.power-gauge .metric-line b{color:#ffdaa0;text-shadow:none}
+#bossBox{display:none;width:175px;max-width:175px;margin:0;padding:8px 10px;--c:var(--red);border-color:#ff74742b;background:#211919bf;animation:none}
+#bossBox small{font-size:8px;align-items:center}.boss-hp{margin-left:auto;color:#ffc0b6;font-size:9px!important;letter-spacing:0!important}.boss-hp b{font-size:11px;color:#fff;margin:0 2px 0 0}.boss-gauge .bar{height:3px;margin-top:7px}.boss-gauge #bossFill{background:#ff7165;box-shadow:0 0 7px #ff555555}
+@media(max-width:560px){#hud{padding:10px;gap:6px}#hud .gauge{width:94px;padding:7px 9px}#bossBox{width:140px;max-width:140px}.metric-line b{font-size:21px}}
+#pauseBtn{position:fixed;z-index:5;right:16px;top:16px;padding:9px 14px;border-radius:8px;background:#101a22d9;color:#edf5fb;border:1px solid #afc8d544;box-shadow:none;font-size:12px}
+#pauseOverlay{display:none;position:fixed;z-index:6;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:15px;background:#07101bd9;backdrop-filter:blur(8px);text-align:center}
+#pauseOverlay h2{margin:0;font-size:clamp(36px,8vw,64px);letter-spacing:-.05em}
+#pauseOverlay p{margin:0;color:#b8c7d4}
+#battleBox{display:none;position:fixed;z-index:2;left:50%;top:16%;transform:translateX(-50%);width:min(360px,calc(100vw - 32px));padding:14px 16px;background:#111c27ed;border:1px solid #ff716577;border-radius:12px;box-shadow:0 10px 35px #0007}
+#battleBox strong{display:block;color:#ffc15a;font-size:12px;letter-spacing:.12em}
+#battleHint{margin:5px 0 10px;color:#d3dee8;font-size:12px}
+#battleAim{margin:-5px 0 10px;color:#68e4ff;font-size:11px;font-weight:800;letter-spacing:.04em}
+#battleBar{height:7px;background:#050b12;border-radius:99px;overflow:hidden}
+#battleFill{display:block;width:100%;height:100%;background:linear-gradient(90deg,#ff4f53,#ffc15a);transition:width .12s}
+#battleHelp{display:block;margin-top:8px;color:#a5b4c4;font-size:10px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+  <script type="module" crossorigin src="./assets/index-OLG1W0tS.js"></script>
+</head>
+<body>
+<div id="hud">
+  <div class="row">
+    <div class="gauge unit-gauge"><small>SWARM</small><div class="metric-line"><b id="n">10</b><span class="metric-unit">UNITS</span></div></div>
+    <div class="gauge power-gauge"><small>FIREPOWER</small><div class="metric-line"><b>x<span id="fp">1.0</span></b><span class="metric-unit">PWR</span></div></div>
+  </div>
+  <div class="gauge boss-gauge" id="bossBox"><small>REACTOR CORE <span class="boss-hp"><b id="bossPct">100</b>%</span></small><div class="bar"><i id="bossFill"></i></div></div>
+</div>
+<button id="pauseBtn" type="button">Ⅱ PAUSE</button>
+<div id="pauseOverlay"><h2>Game dijeda</h2><p>Tekan P atau Escape untuk lanjut.</p><button id="resumeBtn" type="button">Lanjutkan</button></div>
+<div id="battleBox"><strong>DUEL MINI · ROBOT PENJAGA</strong><p id="battleHint">Sejajarkan bidikan lewat celah tengah.</p><p id="battleAim">SESUAIKAN BIDIKAN · geser untuk sejajarkan dengan penjaga</p><div id="battleBar"><i id="battleFill"></i></div><small id="battleHelp">A/D atau ←/→: bidik dan menghindar · SPACE: tembak · tembakan harus lewat celah</small></div>
+<div id="toast"></div>
+<div id="msg">
+  <h1 id="title">Robot Swarm Factory</h1>
+  <p id="sub">Pimpin swarm robot melewati lini produksi, lalu hancurkan reactor di ujung pabrik. Geser dengan A/D, tombol panah, atau seret jari.</p>
+  <div id="legend">
+    <div><span class="g"></span>Gate hijau menambah robot, gate merah menguranginya</div>
+    <div><span class="y"></span>Gergaji dan press di garis kuning-hitam, hindari</div>
+    <div><span class="d"></span>Kristal emas menaikkan firepower</div>
+    <div><span class="z"></span>Zona merah di fase boss, geser sebelum kepalan jatuh</div>
+  </div>
+  <button id="btn">Mulai shift</button>
+</div>
+</body>
+</html>
