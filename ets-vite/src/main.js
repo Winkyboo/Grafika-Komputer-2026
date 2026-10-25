@@ -4,11 +4,14 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const $ = (id) => document.getElementById(id);
-const END = -230, STOP = END + 16, MAXI = 300, SPEED = 7, BOSS_HP = 6000;
+const END = -230, STOP = END + 16, MAXI = 300, SPEED = 7, BOSS_HP = 10000;
+const BATTLE_START = -132, BATTLE_GUARD_Z = -144, BATTLE_WALL_Z = -138.5;
+const BATTLE_HP = 60, BATTLE_SHOT_TIME = 1 / 3.8, BATTLE_GUARD_SWAY = 0.48, BATTLE_GUARD_RANGE = 2.9;
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let state = 'menu', n = 10, fp = 1, t = 0, sx = 0, sz = 0;
+let state = 'menu', pausedFrom = 'play', n = 10, fp = 1, t = 0, sx = 0, sz = 0;
 let hurtCd = 0, shake = 0, shotT = 0, pulse = 0, bossHp = BOSS_HP;
+let battleHp = BATTLE_HP, battleCooldown = 0, battleAttack = 0, battleWarnX = 0, battleResolved = false, battleStrikeResolved = false, battleLunge = 0, battleFlash = 0;
 
 // Renderer, scene, camera (Materi 4 dan 6)
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -529,8 +532,8 @@ function addUpgrade(x, z) {
   ['g', -20, ['+', 8], ['-', 5]], ['s', -2.5, -34], ['s', 2.5, -34],
   ['g', -48, ['\u00d7', 2], ['\u00f7', 2]], ['u', -2, -58], ['p', -70],
   ['g', -84, ['-', 20], ['\u00d7', 3]], ['s', -3, -98], ['s', 3, -98], ['u', 2, -108],
-  ['p', -118], ['p', -128], ['g', -142, ['+', 30], ['\u00d7', 2]],
-  ['s', -2, -156], ['s', 2, -156], ['u', 0, -166],
+  ['p', -118], ['p', -128], ['g', -154, ['+', 30], ['\u00d7', 2]],
+  ['s', -2, -164], ['s', 2, -164], ['u', 0, -172],
   ['g', -180, ['\u00d7', 2], ['+', 50]], ['p', -192], ['s', 0, -200],
 ].forEach(([k, a, b, c]) => {
   if (k === 'g') addGate(a, b, c);
@@ -564,6 +567,79 @@ reactor.add(base, torso, ...arms, core, ...rings, glow);
 reactor.scale.setScalar(1.5);
 scene.add(reactor);
 
+// Mini battle robot penjaga di checkpoint tengah lintasan.
+const guard = new THREE.Group();
+const guardBody = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.8, 1.1), new THREE.MeshStandardMaterial({ color: 0x273a48, metalness: 0.72, roughness: 0.28, emissive: 0x07151c }));
+guardBody.position.y = 1.55;
+const guardHead = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.85), new THREE.MeshStandardMaterial({ color: 0x536873, metalness: 0.65, roughness: 0.3 }));
+guardHead.position.set(0, 2.85, -0.05);
+const guardEye = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.14, 0.08), new THREE.MeshBasicMaterial({ color: 0xff513e }));
+guardEye.position.set(0, 2.85, 0.42);
+const guardArms = [-1, 1].map((side) => {
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.55, 0.65), metal);
+  arm.position.set(side * 1.15, 1.55, 0);
+  return arm;
+});
+guard.add(guardBody, guardHead, guardEye, ...guardArms);
+guard.position.set(0, 0, BATTLE_GUARD_Z);
+guard.visible = false;
+guard.traverse((part) => { if (part.isMesh) part.castShadow = true; });
+scene.add(guard);
+// Cover di antara swarm dan penjaga membentuk jalur tembak tengah dan samping.
+const battleCover = new THREE.Group();
+const coverMetal = new THREE.MeshStandardMaterial({ color: 0x35434a, metalness: 0.78, roughness: 0.32 });
+const coverWarning = new THREE.MeshStandardMaterial({ color: 0xb77c2c, emissive: 0x4d2508, metalness: 0.55, roughness: 0.4 });
+[-1, 1].forEach((side) => {
+  const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.6, 0.7), coverMetal);
+  block.position.set(side * 1.28, 1.3, BATTLE_WALL_Z);
+  block.castShadow = block.receiveShadow = true;
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.16, 0.72), coverWarning);
+  stripe.position.set(side * 1.28, 2.08, BATTLE_WALL_Z);
+  battleCover.add(block, stripe);
+});
+const gapLight = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.055, 0.08), new THREE.MeshBasicMaterial({ color: 0x68e4ff }));
+gapLight.position.set(0, 0.055, BATTLE_WALL_Z + 0.45);
+battleCover.add(gapLight);
+const sideLaneLights = [-1, 1].map((side) => {
+  const lane = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.035, 4.2), new THREE.MeshBasicMaterial({ color: 0x68e4ff, transparent: true, opacity: 0.45 }));
+  lane.position.set(side * 2.55, 0.025, BATTLE_WALL_Z + 0.3);
+  return lane;
+});
+battleCover.add(...sideLaneLights);
+const aimReticle = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.035, 8, 20), new THREE.MeshBasicMaterial({ color: 0x68e4ff }));
+aimReticle.position.set(0, 1, BATTLE_WALL_Z + 0.42);
+aimReticle.visible = true;
+battleCover.add(aimReticle);
+battleCover.visible = false;
+scene.add(battleCover);
+const leadReticle = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.045, 8, 24), new THREE.MeshBasicMaterial({ color: 0xffcf68 }));
+leadReticle.visible = false;
+scene.add(leadReticle);
+const fightShotGeo = new THREE.SphereGeometry(0.11, 10, 8);
+const fightShotCore = new THREE.MeshBasicMaterial({ color: 0xbafaff });
+const fightShotTail = new THREE.MeshBasicMaterial({ color: 0x24dfff, transparent: true, opacity: 0.78 });
+const fightShots = Array.from({ length: 18 }, () => {
+  const bolt = new THREE.Group();
+  const core = new THREE.Mesh(fightShotGeo, fightShotCore);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.07, 0.62, 8), fightShotTail);
+  tail.rotation.x = Math.PI / 2;
+  tail.position.z = 0.33;
+  bolt.add(core, tail);
+  bolt.visible = false;
+  scene.add(bolt);
+  return { m: bolt, p: 1, a: new THREE.Vector3(), blocked: false, targetX: 0 };
+});
+let fightShotIndex = 0;
+function fireBattleShot() {
+  const shot = fightShots[fightShotIndex++ % fightShots.length];
+  // Peluru melaju lurus dari pusat formasi: posisi pemain menentukan akurasi.
+  shot.a.set(sx, 0.8, sz - 0.3);
+  shot.p = 0;
+  shot.blocked = false;
+  shot.targetX = Math.sin((t + BATTLE_SHOT_TIME) * BATTLE_GUARD_SWAY) * BATTLE_GUARD_RANGE;
+  shot.m.visible = true;
+}
+
 // Peluru dari swarm menuju core
 const bulletG = new THREE.SphereGeometry(0.12, 8, 8), bulletM = new THREE.MeshBasicMaterial({ color: 0x7ff0ff });
 const bullets = Array.from({ length: 40 }, () => {
@@ -593,12 +669,15 @@ function fire() {
 // Input: keyboard dan drag (mouse atau sentuh)
 const keys = {};
 let dragX = null;
-addEventListener('keydown', (e) => (keys[e.code] = true));
+addEventListener('keydown', (e) => {
+  if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) { e.preventDefault(); togglePause(); return; }
+  keys[e.code] = true;
+});
 addEventListener('keyup', (e) => (keys[e.code] = false));
 renderer.domElement.addEventListener('pointerdown', (e) => (dragX = e.clientX));
 addEventListener('pointerup', () => (dragX = null));
 addEventListener('pointermove', (e) => {
-  if (dragX !== null && (state === 'play' || state === 'boss')) {
+  if (dragX !== null && (state === 'play' || state === 'boss' || state === 'battle')) {
     sx += (e.clientX - dragX) * 0.025;
     dragX = e.clientX;
   }
@@ -607,12 +686,17 @@ addEventListener('pointermove', (e) => {
 function reset() {
   n = 10; fp = 1; sx = 0; sz = 0; hurtCd = 0; pulse = 0; shotT = 0; bossHp = BOSS_HP;
   atk = null; atkT = 0; zone.material.opacity = 0; fist.visible = false;
+  battleHp = BATTLE_HP; battleCooldown = 0; battleAttack = 0; battleResolved = false; battleStrikeResolved = false; battleLunge = 0; battleFlash = 0; guard.visible = false; battleCover.visible = false; leadReticle.visible = false;
   gates.forEach((g) => (g.used = false));
   pickups.forEach((p) => { p.got = false; p.m.visible = true; });
   bullets.forEach((b) => (b.m.visible = false));
+  fightShots.forEach((shot) => (shot.m.visible = false));
   state = 'play';
   $('msg').style.display = 'none';
   $('bossBox').style.display = 'none';
+  $('battleBox').style.display = 'none';
+  $('pauseBtn').style.display = 'block';
+  $('pauseOverlay').style.display = 'none';
 }
 function end(win) {
   state = win ? 'win' : 'lose';
@@ -621,18 +705,47 @@ function end(win) {
   $('sub').textContent = win ? `Pabrik aman. Sisa robot: ${n}.` : 'Coba lagi dan pilih gate yang lebih menguntungkan.';
   $('btn').textContent = 'Main lagi';
   $('msg').style.display = 'flex';
+  $('pauseBtn').style.display = 'none';
 }
 $('btn').onclick = reset;
 
+function togglePause() {
+  if (state === 'play' || state === 'boss' || state === 'battle') {
+    pausedFrom = state;
+    state = 'paused';
+    $('pauseOverlay').style.display = 'flex';
+  } else if (state === 'paused') {
+    state = pausedFrom;
+    $('pauseOverlay').style.display = 'none';
+  }
+}
+$('pauseBtn').onclick = togglePause;
+$('resumeBtn').onclick = togglePause;
+$('restartBtn').onclick = reset;
+function backToMenu() {
+  reset();
+  state = 'menu';
+  $('pauseOverlay').style.display = 'none';
+  $('pauseBtn').style.display = 'none';
+  $('bossBox').style.display = 'none';
+  $('battleBox').style.display = 'none';
+  $('title').textContent = 'Robot Swarm Factory';
+  $('sub').textContent = 'Pimpin swarm robot melewati lini produksi, lalu hancurkan reactor di ujung pabrik. Geser dengan A/D, tombol panah, atau seret jari.';
+  $('legend').style.display = 'grid';
+  $('btn').textContent = 'Mulai shift';
+  $('msg').style.display = 'flex';
+}
+$('menuBtn').onclick = backToMenu;
+
 const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const dt = state === 'paused' ? 0 : Math.min(clock.getDelta(), 0.05);
   t += dt;
   furnaceLights.forEach((light, i) => { light.intensity = 64 + Math.sin(t * 2.1 + i * 1.7) * 7; });
   dust.rotation.y = Math.sin(t * 0.08) * 0.015;
   const R = swarmR();
 
-  if (state === 'play' || state === 'boss') {
+  if (state === 'play' || state === 'boss' || state === 'battle') {
     const lim = 4.6 - Math.min(R, 3.4);
     sx += ((keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0)) * 9 * dt;
     sx = THREE.MathUtils.clamp(sx, -lim, lim);
@@ -681,9 +794,65 @@ renderer.setAnimationLoop(() => {
       }
     });
     if (n <= 0) end(false);
-    else if (sz <= STOP) { state = 'boss'; $('bossBox').style.display = 'block'; }
+    else if (!battleResolved && sz <= BATTLE_START) {
+      sz = BATTLE_START; state = 'battle'; battleHp = BATTLE_HP; battleAttack = 0; battleCooldown = 0; battleStrikeResolved = false; battleLunge = 0; battleFlash = 0; guard.visible = true; battleCover.visible = true; leadReticle.visible = true;
+      $('battleBox').style.display = 'block'; toast('ROBOT PENJAGA!', false);
+    } else if (sz <= STOP) { state = 'boss'; $('bossBox').style.display = 'block'; }
+  } else if (state === 'battle') {
+    battleCooldown = Math.max(0, battleCooldown - dt);
+    battleAttack -= dt;
+    battleLunge = Math.max(0, battleLunge - dt);
+    battleFlash = Math.max(0, battleFlash - dt);
+    guard.position.x = Math.sin(t * BATTLE_GUARD_SWAY) * BATTLE_GUARD_RANGE;
+    guard.position.z = BATTLE_GUARD_Z + (battleLunge > 0 ? Math.sin((battleLunge / 0.22) * Math.PI) * 1.4 : 0);
+    const windup = battleAttack > 0 && battleAttack < 1.8;
+    guardArms[0].rotation.x = windup ? -1.15 : 0;
+    guardArms[1].rotation.x = windup ? -1.15 : 0;
+    guardArms[0].rotation.z = (windup ? -0.25 : 0) - (battleLunge > 0 ? 0.8 : 0);
+    guardArms[1].rotation.z = (windup ? 0.25 : 0) + (battleLunge > 0 ? 0.8 : 0);
+    guardBody.material.emissive.setHex(battleFlash > 0 ? 0x8b251c : 0x07151c);
+    zone.scale.set(2.7, 5.5, 1);
+    zone.position.set(battleWarnX, 0.045, sz - 2.5);
+    zone.material.opacity = windup ? 0.16 + 0.16 * Math.sin(t * 18) : 0;
+    const aimX = Math.abs(sx), inGap = aimX < 0.68 || aimX > 1.88;
+    const predictedX = Math.sin((t + BATTLE_SHOT_TIME) * BATTLE_GUARD_SWAY) * BATTLE_GUARD_RANGE;
+    const aimed = inGap && Math.abs(sx - predictedX) < 0.78;
+    aimReticle.position.x = sx;
+    aimReticle.material.color.setHex(!inGap ? 0xffa94f : aimed ? 0x68e4ff : 0xffc15a);
+    leadReticle.position.set(predictedX, 1.6, guard.position.z + 0.62);
+    $('battleAim').textContent = !inGap ? 'TERHALANG' : aimed ? 'BIDIKAN TEPAT' : 'GESER UNTUK MEMBIDIK';
+    $('battleAim').style.color = !inGap ? '#ffb65e' : aimed ? '#68e4ff' : '#ffc15a';
+    if ((keys.Space || keys.Enter) && battleCooldown <= 0) {
+      battleCooldown = 0.28;
+      fireBattleShot();
+      emitParticles(new THREE.Vector3(sx, 0.8, sz - 0.3), 0x68e4ff, 5, 1.1, 0.1, 0.8);
+    }
+    if (battleAttack <= 0) {
+      battleAttack = 3.2;
+      battleStrikeResolved = false;
+      battleWarnX = THREE.MathUtils.clamp(sx, -2.35, 2.35);
+      guardEye.material.color.setHex(0xff513e);
+      const lane = Math.abs(battleWarnX) < 0.55 ? 'tengah' : battleWarnX < 0 ? 'kiri' : 'kanan';
+      $('battleHint').textContent = `Bidik ${lane} · hindari zona merah`;
+    } else if (battleAttack < 0.45 && !battleStrikeResolved) {
+      battleStrikeResolved = true;
+      battleLunge = 0.22;
+      guardEye.material.color.setHex(0xffc15a);
+      zone.material.opacity = 0.72;
+      emitParticles(new THREE.Vector3(battleWarnX, 0.35, sz - 2), 0xff513e, 14, 2, 0.25, 1.4);
+      if (Math.abs(sx - battleWarnX) < 1.25) {
+        const loss = Math.max(1, Math.ceil(n * 0.12)); n = Math.max(0, n - loss); shake = 0.55;
+        toast(`-${loss} robot`, false);
+      } else toast('Menghindar!', true);
+    }
+    if (battleHp <= 0) {
+      battleResolved = true; guard.visible = false; battleCover.visible = false; zone.material.opacity = 0; fightShots.forEach((shot) => { shot.m.visible = false; }); $('battleBox').style.display = 'none';
+      fp += 0.5; toast('Penjaga dikalahkan · Firepower +0.5', true);
+      emitParticles(new THREE.Vector3(0, 1.5, BATTLE_GUARD_Z), 0xffc15a, 44, 4, 0.8, 2.2);
+      state = 'play';
+    } else if (n <= 0) end(false);
   } else if (state === 'boss') {
-    bossHp -= n * 1.5 * fp * dt;
+    bossHp -= n * 2.5 * fp * dt;
     shotT -= dt;
     if (shotT <= 0) { shotT = 0.07; fire(); }
     atkT += dt;
@@ -722,6 +891,37 @@ renderer.setAnimationLoop(() => {
     if (bossHp <= 0) end(true);
     else if (n <= 0) end(false);
   }
+
+  if (state !== 'battle' && state !== 'paused') {
+    zone.material.opacity = state === 'boss' ? zone.material.opacity : 0;
+    leadReticle.visible = false;
+  }
+  fightShots.forEach((shot) => {
+    if (!shot.m.visible) return;
+    shot.p += dt * 3.8;
+    const wallProgress = (BATTLE_WALL_Z - shot.a.z) / (BATTLE_GUARD_Z - shot.a.z);
+    const z = THREE.MathUtils.lerp(shot.a.z, BATTLE_GUARD_Z, shot.p);
+    shot.m.position.set(shot.a.x, shot.a.y + Math.sin(shot.p * Math.PI) * 0.08, z);
+    if (!shot.blocked && shot.p >= wallProgress) {
+      shot.blocked = true;
+      if (Math.abs(shot.a.x) > 0.68 && Math.abs(shot.a.x) < 1.88) {
+        shot.m.visible = false;
+        emitParticles(new THREE.Vector3(shot.a.x, 0.9, BATTLE_WALL_Z), 0xffa94f, 9, 1.8, 0.3, 1.4);
+        return;
+      }
+    }
+    if (shot.p >= 1) {
+      shot.m.visible = false;
+      const hit = Math.abs(shot.a.x - shot.targetX) < 0.78;
+      const impact = new THREE.Vector3(shot.a.x, 1.6, guard.position.z + 0.5);
+      if (hit) {
+        battleHp = Math.max(0, battleHp - (8 + fp * 3));
+        battleFlash = 0.16;
+        emitParticles(impact, 0xffbd64, 15, 2.8, 0.5, 1.8);
+        toast('Tembakan tepat!', true);
+      } else emitParticles(impact, 0x68dfff, 7, 1.8, 0.3, 1.4);
+    }
+  });
 
   bullets.forEach((b) => {
     if (!b.m.visible) return;
@@ -763,8 +963,9 @@ renderer.setAnimationLoop(() => {
 
   $('n').textContent = n;
   $('fp').textContent = fp.toFixed(1);
-  const bossPct = Math.max(0, Math.round((bossHp / BOSS_HP) * 100));
-  $('bossFill').style.width = bossPct + '%';
-  $('bossPct').textContent = bossPct;
+  $('battleFill').style.width = `${Math.max(0, battleHp / BATTLE_HP * 100)}%`;
+  const bossValue = Math.max(0, Math.ceil(bossHp));
+  $('bossFill').style.width = `${Math.max(0, (bossHp / BOSS_HP) * 100)}%`;
+  $('bossHpText').textContent = `${bossValue}/${BOSS_HP} HP`;
   renderer.render(scene, camera);
 });
