@@ -457,7 +457,7 @@ const bodies = new THREE.InstancedMesh(
 
 // Muat model dari public sekali, lalu gabungkan geometri agar swarm tetap memakai instancing.
 new GLTFLoader().load(
-  '/models/mini-robot.glb',
+  `${import.meta.env.BASE_URL}models/mini-robot.glb`,
   (gltf) => {
     const root = gltf.scene;
     root.updateMatrixWorld(true);
