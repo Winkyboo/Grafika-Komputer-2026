@@ -69,7 +69,7 @@ function openPraktikumSeven() {
 }
 
 function openETS() {
-    const practicumButton = document.querySelectorAll('.nav-btn')[8];
+    const practicumButton = document.querySelectorAll('.nav-btn')[9];
     loadPraktikum(practicumButton, './ETS/index.html', 'Project ETS');
 }
 
