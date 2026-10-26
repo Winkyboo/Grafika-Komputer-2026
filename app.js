@@ -68,6 +68,11 @@ function openPraktikumSeven() {
     loadPraktikum(practicumButton, './Praktikum Week 7/index.html', 'Praktikum 7');
 }
 
+function openETS() {
+    const practicumButton = document.querySelectorAll('.nav-btn')[8];
+    loadPraktikum(practicumButton, './ETS/index.html', 'Project ETS');
+}
+
 function setActiveButton(activeBtn) {
     navButtons.forEach((btn) => btn.classList.remove('active'));
     activeBtn.classList.add('active');
