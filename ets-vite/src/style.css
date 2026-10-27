@@ -634,3 +634,89 @@ button:focus-visible {
     transition-duration: .01ms!important;
   }
 }
+
+#gameShell {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #080e16;
+  isolation: isolate;
+}
+
+#gameShell:fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #080e16;
+}
+
+#gameShell > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#gameShell > #hud,
+#gameShell > #msg,
+#gameShell > #toast,
+#gameShell > #pauseBtn,
+#gameShell > #pauseOverlay,
+#gameShell > #battleBox {
+  position: absolute;
+}
+
+#pauseBtn {
+  top: 16px;
+  right: 16px;
+}
+
+#fullscreenBtn,
+#fullscreenExitBtn {
+  position: absolute;
+  z-index: 5;
+  bottom: 18px;
+  left: 50%;
+  display: block;
+  width: auto;
+  margin: 0;
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid #afc8d566;
+  border-radius: 9px;
+  background: #101a22eF;
+  color: #edf5fb;
+  box-shadow: 0 6px 22px #0007;
+  font: 700 12px/1.2 Inter,"Segoe UI",system-ui,sans-serif;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+#fullscreenBtn:hover,
+#fullscreenExitBtn:hover {
+  background: #243747;
+}
+
+#fullscreenExitBtn {
+  display: none;
+  z-index: 8;
+}
+
+#gameShell:fullscreen #fullscreenExitBtn {
+  display: block;
+}
+
+#gameShell:fullscreen #fullscreenBtn {
+  display: none;
+}

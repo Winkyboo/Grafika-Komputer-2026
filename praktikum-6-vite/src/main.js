@@ -1,3 +1,4 @@
+import '../../canvas-fullscreen.js';
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import "./style.css";
@@ -636,3 +637,4 @@ function animate() {
 refreshButtons();
 updateHUD();
 animate();
+

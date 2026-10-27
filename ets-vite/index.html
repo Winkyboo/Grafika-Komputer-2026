@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
+<main id="gameShell">
 <div id="hud">
   <div class="row">
     <div class="gauge unit-gauge"><small>SWARM</small><div class="metric-line"><b id="n">10</b><span class="metric-unit">UNITS</span></div></div>
@@ -15,7 +16,8 @@
   <div class="gauge boss-gauge" id="bossBox"><small>REACTOR BOSS</small><div id="bossLine"><div class="bar"><i id="bossFill"></i></div><span id="bossHpText">10000/10000 HP</span></div></div>
 </div>
 <button id="pauseBtn" type="button">Ⅱ PAUSE</button>
-<div id="pauseOverlay"><h2>Game dijeda</h2><p>Tekan P atau Escape untuk lanjut.</p><div id="pauseActions"><button id="resumeBtn" type="button">Lanjutkan</button><button id="restartBtn" type="button">Ulang dari awal</button><button id="menuBtn" type="button">Menu utama</button></div></div>
+<button id="fullscreenBtn" type="button" aria-label="Masuk layar penuh">⛶ Layar penuh</button>
+<div id="pauseOverlay"><h2>Game dijeda</h2><p>Tekan Escape atau P untuk lanjut bermain; layar penuh tetap aktif.</p><div id="pauseActions"><button id="resumeBtn" type="button">Lanjutkan</button><button id="restartBtn" type="button">Ulang dari awal</button><button id="menuBtn" type="button">Menu utama</button></div></div>
 <div id="battleBox"><strong>DUEL MINI · PENJAGA</strong><p id="battleHint">Bidik dan hindari zona merah</p><p id="battleAim">GESER UNTUK MEMBIDIK</p><div id="battleBar"><i id="battleFill"></i></div><small id="battleHelp">A/D geser · SPACE tembak · cincin emas = target</small></div>
 <div id="toast"></div>
 <div id="msg">
@@ -29,6 +31,8 @@
   </div>
   <button id="btn">Mulai shift</button>
 </div>
+<button id="fullscreenExitBtn" type="button" aria-label="Keluar dari layar penuh">× Keluar fullscreen</button>
+</main>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const $ = (id) => document.getElementById(id);
+const gameShell = $('gameShell');
 const END = -230,
   STOP = END + 16,
   MAXI = 300,
@@ -44,7 +45,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-document.body.prepend(renderer.domElement);
+gameShell.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 {
@@ -71,12 +72,62 @@ scene.environment = new THREE.PMREMGenerator(renderer).fromScene(
 
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
 function resize() {
-  renderer.setSize(innerWidth, innerHeight);
-  camera.aspect = innerWidth / innerHeight;
+  const { width, height } = gameShell.getBoundingClientRect();
+  if (!width || !height) return;
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
+new ResizeObserver(resize).observe(gameShell);
 resize();
+
+const fullscreenBtn = $('fullscreenBtn');
+const fullscreenExitBtn = $('fullscreenExitBtn');
+let escapeLockPromise = null;
+function lockFullscreenEscape() {
+  if (!navigator.keyboard?.lock) return Promise.resolve(false);
+  if (!escapeLockPromise) {
+    escapeLockPromise = navigator.keyboard.lock(['Escape'])
+      .then(() => true)
+      .catch((error) => {
+        console.warn('Keyboard Lock tidak tersedia:', error);
+        escapeLockPromise = null;
+        return false;
+      });
+  }
+  return escapeLockPromise;
+}
+fullscreenBtn.addEventListener('click', async () => {
+  try {
+    await gameShell.requestFullscreen();
+    const escapeLocked = await lockFullscreenEscape();
+    if (!escapeLocked) {
+      fullscreenExitBtn.title = 'Browser ini belum mengunci Escape; gunakan P untuk pause.';
+    }
+  } catch (error) {
+    console.error('Fullscreen tidak dapat dibuka:', error);
+  }
+});
+fullscreenExitBtn.addEventListener('click', () => {
+  if (document.fullscreenElement === gameShell) document.exitFullscreen();
+});
+document.addEventListener('fullscreenchange', async () => {
+  const active = document.fullscreenElement === gameShell;
+  fullscreenBtn.style.display = active ? 'none' : '';
+  fullscreenExitBtn.style.display = active ? 'block' : 'none';
+  fullscreenBtn.setAttribute('aria-label', active ? 'Layar penuh aktif' : 'Masuk layar penuh');
+  if (active) {
+    const escapeLocked = await lockFullscreenEscape();
+    if (!escapeLocked) {
+      fullscreenExitBtn.title = 'Browser ini belum mengunci Escape; gunakan P untuk pause.';
+    }
+  } else {
+    navigator.keyboard?.unlock?.();
+    escapeLockPromise = null;
+  }
+  resize();
+});
 
 // Lighting dan shadow (Materi 5 dan 6)
 scene.add(new THREE.HemisphereLight(0xc9e2ed, 0x30251a, 0.72));
@@ -1042,6 +1093,7 @@ let tapStart = null; // [RAYCASTER] deteksi tap vs drag
 addEventListener('keydown', (e) => {
   if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) {
     e.preventDefault();
+    e.stopPropagation();
     togglePause();
     return;
   }
@@ -1456,3 +1508,4 @@ renderer.setAnimationLoop(() => {
   $('bossHpText').textContent = `${bossValue}/${BOSS_HP} HP`;
   renderer.render(scene, camera);
 });
+
