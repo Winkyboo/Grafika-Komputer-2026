@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dokumentasi proses modeling Modular Sci-Fi Supply Crate Kelompok 04 untuk Praktikum Grafika Komputer 9.">
+  <meta name="theme-color" content="#111629">
+  <title>Praktikum 9 | Modular Sci-Fi Supply Crate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div class="header-copy">
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 09</p>
+        <h1>Modular Sci-Fi <span>Supply Crate</span></h1>
+        <p class="subtitle">Dokumentasi proses hard-surface modeling di Blender: dari blockout hingga peti kargo futuristik dengan panel mekanis dan detail modular.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 04</span>
+        <span class="status"><i></i> Blender Fundamental &amp; 3D Modeling</span>
+        <small>Willy Marcelius · 5025241096<br>Rennard Filbert Tanjaya · 5025241122</small>
+      </div>
+    </header>
+
+    <section class="hero panel">
+      <div class="hero-image">
+        <img src="./Screenshot%20Final/final.png" alt="Model Modular Sci-Fi Supply Crate di Blender">
+        <span class="image-label">HASIL AKHIR · BLENDER 5.2</span>
+      </div>
+      <div class="hero-copy">
+        <p class="section-kicker">ASSET OVERVIEW</p>
+        <h2>Peti kargo untuk dunia sci-fi</h2>
+        <p>Model menggabungkan badan kotak, panel depan cekung, pelindung oranye, panel samping, pegangan, cooling fins, baut, dan indikator. Warna gelap dengan aksen oranye dan biru membentuk tampilan industrial yang kuat dan mudah dikenali.</p>
+        <div class="tag-list"><span>Hard Surface</span><span>Modular Parts</span><span>Kelompok 04</span></div>
+        <a class="primary-link" href="./P09_04_Sci-FiCrate.blend" download>Unduh file Blender <span>↗</span></a>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <div><p class="section-kicker">MODELING WORKFLOW</p><h2>Tahap Pengerjaan</h2></div>
+        <span class="chapter-mark">01</span>
+      </div>
+      <div class="process-grid">
+        <article class="panel process-card">
+          <img src="./Screenshot%20Proses/blockout.png" alt="Blockout badan kotak dan tutup peti">
+          <div class="process-copy"><span class="step">01 / BLOCKOUT</span><h3>Menetapkan bentuk dasar</h3><p>Cube disusun menjadi badan utama dan tutup atas untuk menetapkan proporsi peti sebelum menambahkan detail.</p></div>
+        </article>
+        <article class="panel process-card">
+          <img src="./Screenshot%20Proses/extrude.png" alt="Face depan badan utama dipilih pada Edit Mode">
+          <div class="process-copy"><span class="step">02 / INSET + EXTRUDE</span><h3>Membentuk panel depan</h3><p>Inset membuat batas panel pada face depan. Face bagian dalam kemudian di-Extrude ke arah dalam untuk membentuk area recessed.</p></div>
+        </article>
+        <article class="panel process-card">
+          <img src="./Screenshot%20Proses/bevel.png" alt="Edge loop dan bevel di sekitar panel badan">
+          <div class="process-copy"><span class="step">03 / LOOP CUT + BEVEL</span><h3>Mengontrol tepi</h3><p>Loop Cut menambahkan edge untuk mengatur geometri. Bevel memberi chamfer pada tepi agar bentuk tetap tegas tetapi tidak terlalu tajam.</p></div>
+        </article>
+        <article class="panel process-card">
+          <img src="./Screenshot%20Proses/modifier.png" alt="Asset dengan modifier dan komponen tambahan">
+          <div class="process-copy"><span class="step">04 / MODIFIERS</span><h3>Membangun detail modular</h3><p>Modifier membantu membuat komponen simetris dan berulang, menambah ketebalan panel, serta merapikan shading.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">GEOMETRY</p><h2>Primitive &amp; Teknik</h2></div><span class="chapter-mark">02</span></div>
+        <div class="primitive-grid">
+          <div><b class="primitive-icon">C</b><strong>Cube</strong><p>Badan, tutup, armor, pegangan, pengunci, dan komponen mekanis.</p></div>
+          <div><b class="primitive-icon">P</b><strong>Plane</strong><p>Panel tipis yang diberi ketebalan menggunakan Solidify.</p></div>
+          <div><b class="primitive-icon">CY</b><strong>Cylinder</strong><p>Baut, pengunci, dan indikator berbentuk bulat.</p></div>
+          <div><b class="primitive-icon">T</b><strong>Text</strong><p>Tulisan identitas pada panel depan asset.</p></div>
+        </div>
+        <div class="technique-list">
+          <div><span>Inset</span><p>Membentuk batas dan bingkai panel depan.</p></div>
+          <div><span>Extrude</span><p>Mendorong face panel ke dalam untuk membuat cekungan.</p></div>
+          <div><span>Loop Cut</span><p>Menambah edge loop untuk kontrol pembagian geometri.</p></div>
+          <div><span>Bevel</span><p>Membuat chamfer di tepi badan dan komponen kecil.</p></div>
+        </div>
+        <p class="transform-note"><b>Transformasi:</b> Grab (G), Rotate (R), Scale (S), pembatas sumbu X/Y/Z, dan Apply Scale sebelum modifier bila diperlukan.</p>
+      </article>
+
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">NON-DESTRUCTIVE TOOLS</p><h2>Modifier</h2></div><span class="chapter-mark">03</span></div>
+        <div class="modifier-list">
+          <div><span class="modifier-symbol">↔</span><div><strong>Mirror</strong><p>Menjaga pelindung sudut tetap simetris.</p></div></div>
+          <div><span class="modifier-symbol">×</span><div><strong>Array</strong><p>Mengulang cooling fins dengan jarak yang konsisten.</p></div></div>
+          <div><span class="modifier-symbol">▱</span><div><strong>Solidify</strong><p>Memberi ketebalan pada panel berbahan plane.</p></div></div>
+          <div><span class="modifier-symbol">◇</span><div><strong>Bevel</strong><p>Menghaluskan tepi badan dan komponen.</p></div></div>
+          <div><span class="modifier-symbol">◌</span><div><strong>Weighted Normal</strong><p>Membantu menjaga shading permukaan tetap rapi.</p></div></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel report-panel cleanup-panel">
+      <div class="panel-heading"><div><p class="section-kicker">TOPOLOGY CLEANUP</p><h2>Perapian Mesh &amp; Scene</h2><p class="section-note">Pemeriksaan menjaga bentuk tetap terbaca dan file siap dilanjutkan ke UV serta material.</p></div><span class="chapter-mark">04</span></div>
+      <div class="cleanup-grid">
+        <div><strong>Geometri</strong><p>Periksa vertex bertumpuk dan gunakan <code>Merge by Distance</code> bila diperlukan. Pastikan tidak ada duplicate geometry yang tidak dibutuhkan.</p></div>
+        <div><strong>Normal &amp; shading</strong><p>Periksa arah normal, gunakan <code>Recalculate Outside</code> bila diperlukan, dan cek bevel yang bertumpuk atau mengganggu shading.</p></div>
+        <div><strong>Silhouette &amp; proporsi</strong><p>Pastikan bentuk peti tetap jelas, detail tidak berlebihan, dan posisi setiap komponen tersusun rapi.</p></div>
+        <div><strong>Outliner</strong><p>Gunakan nama object yang jelas dan kelompokkan bagian berdasarkan fungsi agar scene mudah dilanjutkan.</p></div>
+      </div>
+    </section>
+
+    <section class="panel report-panel checklist-panel">
+      <div class="panel-heading"><div><p class="section-kicker">SUBMISSION CHECKLIST</p><h2>Checklist Pengumpulan</h2><p class="section-note">Ringkasan kriteria pengerjaan dan dokumentasi asset.</p></div><span class="chapter-mark">04</span></div>
+      <div class="checklist-grid">
+        <ul>
+          <li><span>✓</span>File <code>.blend</code> tersedia</li>
+          <li><span>✓</span>Nama object dan kelompok komponen rapi</li>
+          <li><span>✓</span>Silhouette asset terbaca jelas</li>
+          <li><span>✓</span>Primitive dan blockout terlihat di dokumentasi</li>
+          <li><span>✓</span>Object Mode dan Edit Mode digunakan</li>
+          <li><span>✓</span>Extrude dan Inset digunakan</li>
+          <li><span>✓</span>Loop Cut dan Bevel digunakan</li>
+          <li><span>✓</span>Minimal dua modifier diterapkan</li>
+        </ul>
+        <ul>
+          <li><span>✓</span>Apply Scale digunakan bila diperlukan</li>
+          <li><span>✓</span>Topology dan normal diperiksa</li>
+          <li><span>✓</span>Duplicate geometry yang tidak diperlukan dibersihkan</li>
+          <li><span>✓</span>Detail dijaga agar tidak berlebihan</li>
+          <li><span>✓</span>Minimal dua challenge diterapkan</li>
+          <li><span>✓</span>Screenshot proses tersedia</li>
+          <li><span>✓</span>Screenshot hasil akhir tersedia</li>
+          <li><span>✓</span>File siap dilanjutkan ke UV dan material</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">CHALLENGE REPORT</p><h2>Challenge yang Diterapkan</h2></div><span class="chapter-mark">05</span></div>
+        <div class="challenge-list">
+          <p><b>A</b><span><strong>Symmetric Prop</strong> — Mirror pada pelindung sudut.</span></p>
+          <p><b>B</b><span><strong>Repeated Detail</strong> — Array untuk cooling fins.</span></p>
+          <p><b>C</b><span><strong>Thin Panel</strong> — Solidify untuk panel armor.</span></p>
+          <p><b>D</b><span><strong>Precision Modeling</strong> — Transformasi numerik untuk ukuran dan posisi.</span></p>
+        </div>
+      </article>
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">LESSONS LEARNED</p><h2>Kendala &amp; Solusi</h2></div><span class="chapter-mark">06</span></div>
+        <div class="issue-list">
+          <details><summary>Render engine tidak dikenali</summary><p>Nama engine pada script awal tidak cocok dengan pilihan Blender 5.2. Pengaturan diubah ke BLENDER_EEVEE.</p></details>
+          <details><summary>File tidak dapat disimpan di Program Files</summary><p>Lokasi penyimpanan dipindahkan ke folder Downloads yang memiliki izin tulis.</p></details>
+          <details><summary>Collection duplikat di Outliner</summary><p>Outliner dirapikan dan komponen dikelompokkan berdasarkan fungsi agar struktur scene jelas.</p></details>
+          <details><summary>Loop Cut otomatis gagal</summary><p>Loop Cut dilakukan manual dengan Ctrl + R di Edit Mode agar penempatan edge dapat dikontrol.</p></details>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel file-panel">
+      <div><p class="section-kicker">PROJECT FILE</p><h2>Lanjutkan di Blender</h2><p>File project dan dokumentasi proses tersedia bersama halaman ini.</p></div>
+      <div class="file-links"><a href="./P09_04_Sci-FiCrate.blend" download>↧ File .blend</a><a href="./README.md">Buka README</a></div>
+    </section>
+
+    <footer class="page-footer"><span>EF234504 · GRAFIKA KOMPUTER</span><span>BLENDER FUNDAMENTAL &amp; 3D MODELING</span><span>GROUP 04</span></footer>
+  </main>
+</body>
+</html>
+
