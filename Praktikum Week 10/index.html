@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dokumentasi UV mapping, tekstur PBR, dan rendering Modular Sci-Fi Supply Crate Kelompok 04 untuk Praktikum Grafika Komputer 10.">
+  <meta name="theme-color" content="#0b1020">
+  <title>Praktikum 10 | UV Mapping &amp; PBR Texturing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div class="header-copy">
+        <p class="eyebrow">GRAFIKA KOMPUTER B / PRAKTIKUM 10</p>
+        <h1>UV Mapping <span>&amp; PBR Texturing</span></h1>
+        <p class="subtitle">Dokumentasi proses membuka UV, menyiapkan texture map, dan merender Modular Sci-Fi Supply Crate dengan material PBR di Blender.</p>
+      </div>
+      <div class="header-meta">
+        <span class="group-badge">Kelompok 04</span>
+        <span class="status"><i></i> UV Mapping, PBR &amp; Rendering</span>
+        <small>Willy Marcelius · 5025241096<br>Rennard Filbert Tanjaya · 5025241122</small>
+      </div>
+    </header>
+
+    <section class="hero panel">
+      <div class="hero-image">
+        <img src="./screenshots/06_final.png" alt="Hasil akhir Modular Sci-Fi Supply Crate dengan material PBR">
+        <span class="image-label">HASIL AKHIR · BLENDER</span>
+      </div>
+      <div class="hero-copy">
+        <p class="section-kicker">ASSET OVERVIEW</p>
+        <h2>Tekstur untuk peti kargo sci-fi</h2>
+        <p>Asset hard-surface ini memadukan bodi industrial, panel pelindung, baut, gagang samping, dan indikator LED. Texture map PBR memberi variasi warna, kekasaran, metalness, normal, serta emission pada permukaan.</p>
+        <div class="tag-list"><span>UV Mapping</span><span>5 PBR Maps</span><span>Kelompok 04</span></div>
+        <a class="primary-link" href="./P10_04_Sci-FiCrate.blend" download>Unduh file Blender <span>↗</span></a>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <div><p class="section-kicker">UV &amp; TEXTURING WORKFLOW</p><h2>Tahap Pengerjaan</h2></div>
+        <span class="chapter-mark">01</span>
+      </div>
+      <div class="process-grid">
+        <article class="panel process-card">
+          <img src="./screenshots/01_model.png" alt="Model peti kargo sebelum proses UV dan tekstur">
+          <div class="process-copy"><span class="step">01 / MODEL</span><h3>Menyiapkan asset</h3><p>Model Modular Sci-Fi Supply Crate menjadi dasar proses UV mapping dan pemberian material.</p></div>
+        </article>
+        <article class="panel process-card">
+          <img src="./screenshots/02.1_seam%20(main).png" alt="Seam ditandai pada bodi utama peti">
+          <div class="process-copy"><span class="step">02 / MARK SEAM</span><h3>Menentukan garis seam</h3><p>Seam ditempatkan di sudut tajam dan sisi yang tidak langsung terlihat agar sambungan tekstur lebih tersembunyi.</p></div>
+        </article>
+        <article class="panel process-card">
+          <img src="./screenshots/03.1_uv.png" alt="UV layout asset pada UV Editor Blender">
+          <div class="process-copy"><span class="step">03 / UNWRAP</span><h3>Membuka dan merapikan UV</h3><p>Komponen utama menjadi island besar, sedangkan baut dan gagang menempati island kecil. Island dikemas dengan margin untuk mengurangi texture bleeding.</p></div>
+        </article>
+        <article class="panel process-card">
+          <img src="./screenshots/04.2_checker%20(all).png" alt="Checker texture untuk memeriksa distorsi seluruh model">
+          <div class="process-copy"><span class="step">04 / CHECK DISTORTION</span><h3>Memeriksa stretching</h3><p>Checker texture digunakan untuk melihat distorsi. Seam tambahan dan Unwrap ulang membantu memperbaiki pola yang tertarik.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">TEXTURE MAPS</p><h2>Material PBR</h2></div><span class="chapter-mark">02</span></div>
+        <div class="primitive-grid">
+          <div><b class="primitive-icon">BC</b><strong>Base Color</strong><p>Warna cat oranye dan graphite pada bodi.</p></div>
+          <div><b class="primitive-icon">R</b><strong>Roughness</strong><p>Variasi pantulan antara cat bersih dan area lecet.</p></div>
+          <div><b class="primitive-icon">M</b><strong>Metalness</strong><p>Membedakan permukaan cat dengan logam terbuka.</p></div>
+          <div><b class="primitive-icon">N</b><strong>Normal</strong><p>Detail ukiran, grill, dan goresan tanpa menambah geometri.</p></div>
+        </div>
+        <div class="technique-list">
+          <div><span>Emission</span><p>Mask khusus menyalakan indikator status berwarna cyan.</p></div>
+          <div><span>Color Space</span><p>Base Color dan Emission memakai sRGB; map data memakai Non-Color.</p></div>
+          <div><span>UV Islands</span><p>Island ditata dengan margin aman untuk mengurangi bleeding.</p></div>
+        </div>
+        <p class="transform-note"><b>File tekstur:</b> asset_basecolor.png, asset_roughness.png, asset_metalness.png, asset_normal.png, dan asset_emission.png.</p>
+      </article>
+
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">SHADER SETUP</p><h2>Node &amp; Material</h2></div><span class="chapter-mark">03</span></div>
+        <div class="hero-image" style="min-height: 0; border-radius: 11px; overflow: hidden;">
+          <img src="./screenshots/05_nodes.png" alt="Node shader material PBR di Blender" style="display:block; width:100%; height:auto; min-height:0;">
+        </div>
+        <div class="modifier-list" style="margin-top: 16px;">
+          <div><span class="modifier-symbol">◈</span><div><strong>Main Body</strong><p>Material utama menghubungkan map warna, roughness, metalness, dan normal.</p></div></div>
+          <div><span class="modifier-symbol">✦</span><div><strong>Status Indicator</strong><p>Slot material terpisah memakai emission mask agar cahaya hanya muncul di area LED.</p></div></div>
+          <div><span class="modifier-symbol">↗</span><div><strong>Texture Assignment</strong><p>Material utama diterapkan ke panel yang sebelumnya masih memakai warna bawaan.</p></div></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel report-panel cleanup-panel">
+      <div class="panel-heading"><div><p class="section-kicker">UV MAPPING</p><h2>Seam, Island &amp; Distorsi</h2><p class="section-note">UV yang rapi menjaga tekstur konsisten pada tiap komponen asset.</p></div><span class="chapter-mark">04</span></div>
+      <div class="cleanup-grid">
+        <div><strong>Strategi seam</strong><p>Seam mengikuti sudut 90 derajat dan rusuk yang kurang terlihat, termasuk bagian bawah dan belakang panel.</p></div>
+        <div><strong>Island utama</strong><p>Bodi utama, panel atas, dan armor oranye mendapat island besar agar detail tekstur cukup terbaca.</p></div>
+        <div><strong>Island kecil</strong><p>Baut dan gagang ditempatkan di ruang kosong dengan skala yang sesuai.</p></div>
+        <div><strong>Perbaikan stretching</strong><p>Seam tambahan, Unwrap ulang, dan Pack Islands bermargin membantu mengurangi distorsi dan bleeding.</p></div>
+      </div>
+    </section>
+
+    <section class="panel report-panel checklist-panel">
+      <div class="panel-heading"><div><p class="section-kicker">SUBMISSION CHECKLIST</p><h2>Checklist Pengumpulan</h2><p class="section-note">Ringkasan asset, texture map, dan dokumentasi proses.</p></div><span class="chapter-mark">05</span></div>
+      <div class="checklist-grid">
+        <ul>
+          <li><span>&#10003;</span>File <code>.blend</code> tersedia</li>
+          <li><span>&#10003;</span>Texture tidak missing</li>
+          <li><span>&#10003;</span>Model berasal dari P9 atau setara</li>
+          <li><span>&#10003;</span>Scale diperiksa</li>
+          <li><span>&#10003;</span>Normal diperiksa</li>
+          <li><span>&#10003;</span>Seam manual tersedia</li>
+          <li><span>&#10003;</span>Unwrap dilakukan</li>
+          <li><span>&#10003;</span>UV Island dapat dijelaskan</li>
+          <li><span>&#10003;</span>Checker test dilakukan</li>
+          <li><span>&#10003;</span>Distortion diperiksa</li>
+          <li><span>&#10003;</span>Texel density diperiksa</li>
+          <li><span>&#10003;</span>UV packing rapi</li>
+          <li><span>&#10003;</span>Margin tersedia</li>
+        </ul>
+        <ul>
+          <li><span>&#10003;</span>Overlap hanya jika disengaja</li>
+          <li><span>&#10003;</span>Principled BSDF digunakan</li>
+          <li><span>&#10003;</span>Base Color digunakan</li>
+          <li><span>&#10003;</span>Roughness digunakan</li>
+          <li><span>&#10003;</span>Metallic digunakan</li>
+          <li><span>&#10003;</span>Normal Map digunakan</li>
+          <li><span>&#10003;</span>Emission digunakan</li>
+          <li><span>&#10003;</span>Color space tepat</li>
+          <li><span>&#10003;</span>Node graph rapi</li>
+          <li><span>&#10003;</span>Minimal dua challenge</li>
+          <li><span>&#10003;</span>Screenshot proses lengkap</li>
+          <li><span>&#10003;</span>README lengkap</li>
+          <li><span>&#10003;</span>Final asset siap Pertemuan 11</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">CHALLENGE REPORT</p><h2>Challenge yang Dikerjakan</h2></div><span class="chapter-mark">06</span></div>
+        <div class="challenge-list">
+          <p><b>A</b><span><strong>Multi-Material Surface</strong> — Asset memakai material Main Body untuk bodi bercat metal dan material Status Indicator untuk LED. Pemisahan ini menunjukkan bahwa satu asset dapat memiliki beberapa karakter permukaan.</span></p>
+          <p><b>D</b><span><strong>Custom Emission Mask</strong> — Emission mask khusus mengatur area indikator cyan yang menyala. Mask memastikan hanya bagian LED yang emissive, tanpa cahaya bocor ke bodi.</span></p>
+          <p><b>E</b><span><strong>Custom Roughness Variation</strong> — Roughness map memberi pantulan berbeda pada area cat bersih dan area lecet atau aus. Variasi permukaan ini dibuat lewat tekstur tanpa mengubah geometri.</span></p>
+          <p><b>F</b><span><strong>Metal + Painted Surface</strong> — Metallic Map membedakan cat oranye dan graphite yang non-metal dari bagian logam terbuka. Kedua karakter surface tetap berada dalam satu material bodi.</span></p>
+          <p><b>G</b><span><strong>UV Optimization</strong> — UV island dirapikan untuk mengurangi ruang kosong yang tidak perlu, menjaga margin aman, dan membuat orientasi mudah dibaca. Skala island diatur agar texel density konsisten; layout menjadi dasar dokumentasi before/after.</span></p>
+          <p><b>H</b><span><strong>Normal Detail</strong> — Normal Map menambahkan detail kecil seperti goresan, alur grill, dan ukiran tanpa menambah poligon. Cara ini lebih efisien untuk detail permukaan halus karena tidak memerlukan geometri tambahan.</span></p>
+        </div>
+      </article>
+      <article class="panel report-panel">
+        <div class="panel-heading"><div><p class="section-kicker">LESSONS LEARNED</p><h2>Kendala &amp; Solusi</h2></div><span class="chapter-mark">07</span></div>
+        <div class="issue-list">
+          <details><summary>Emission membocor ke bodi</summary><p>Indikator dipisahkan ke slot material sendiri dan menggunakan emission mask hitam agar hanya area lampu menyala.</p></details>
+          <details><summary>Komponen masih berwarna putih</summary><p>Panel yang belum memiliki tekstur diberi slot material PBR dari object bodi utama menggunakan Link Materials.</p></details>
+          <details><summary>Pola checker tampak tertarik</summary><p>Seam tambahan dibuat pada area yang distorsinya tinggi, lalu model di-Unwrap kembali.</p></details>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel file-panel">
+      <div><p class="section-kicker">PROJECT FILES</p><h2>Lanjutkan di Blender</h2><p>File project, dokumentasi, screenshot, dan texture map tersedia bersama halaman ini.</p></div>
+      <div class="file-links"><a href="./P10_04_Sci-FiCrate.blend" download>↧ File .blend</a><a href="./README.md">Buka README</a></div>
+    </section>
+
+    <footer class="page-footer"><span>EF234504 · GRAFIKA KOMPUTER</span><span>UV MAPPING &amp; PBR TEXTURING</span><span>GROUP 04</span></footer>
+  </main>
+</body>
+</html>
